@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>Crear Clase (Boletería)</title>
+  <style>
+    body {
+      font-family: sans-serif;
+      padding: 16px;
+    }
+    h1 {
+      margin-bottom: 12px;
+    }
+    .filtros {
+      background: #f2f2f2;
+      border: 1px solid #ccc;
+      padding: 12px;
+      margin-bottom: 20px;
+    }
+    .formulario {
+      background: #fafafa;
+      border: 1px solid #ccc;
+      padding: 12px;
+      max-width: 400px;
+    }
+    label {
+      display: block;
+      font-weight: 600;
+      margin-top: 10px;
+      margin-bottom: 4px;
+    }
+    input, select, button {
+      width: 100%;
+      padding: 6px;
+      font-size: 14px;
+    }
+    button {
+      margin-top: 16px;
+      width: auto;
+      cursor: pointer;
+    }
+    .row-inline {
+      display: flex;
+      gap: 12px;
+    }
+    .row-inline > div {
+      flex: 1;
+    }
+    .ayuda {
+      font-size: 12px;
+      color: #777;
+    }
+  </style>
+</head>
+<body>
+
+  <h1>Crear Clase</h1>
+
+  <!-- BLOQUE 1: FILTROS PREVIOS (Disciplina) -->
+  <div class="filtros">
+    <form method="GET">
+      <label>Disciplina de la clase:</label>
+      <select name="disciplina" onchange="this.form.submit()">
+        <option value="">-- Elegir --</option>
+        <option value="ski"  {% if disciplina_elegida == "ski" %}selected{% endif %}>Ski</option>
+        <option value="snow" {% if disciplina_elegida == "snow" %}selected{% endif %}>Snow</option>
+      </select>
+      <div class="ayuda">
+        Selecciona la disciplina primero. La lista de instructores se actualiza sola.
+      </div>
+    </form>
+  </div>
+
+  <!-- BLOQUE 2: FORMULARIO PRINCIPAL (POST guarda la clase) -->
+  <div class="formulario">
+    <form method="POST">
+      {% csrf_token %}
+
+      <!-- Guardamos la disciplina elegida arriba -->
+      <input type="hidden" name="disciplina_clase" value="{{ disciplina_elegida }}">
+
+      <label>Nombre del titular</label>
+      <input type="text" name="nombre_titular" placeholder="Ej: Ramón Pérez" required>
+
+      <label>Teléfono del titular</label>
+      <input type="text" name="titular_telefono" placeholder="Ej: +56 9 1234 5678" required>
+
+      <label>Nivel de la clase</label>
+      <select name="nivel_clase" required>
+        <option value="1">Nivel 1 (principiante)</option>
+        <option value="2">Nivel 2 (intermedio)</option>
+        <option value="3">Nivel 3 (avanzado)</option>
+      </select>
+
+      <div class="row-inline">
+        <div>
+          <label>Fecha y hora de inicio</label>
+          <input type="time" name="hora_sola" required>
+          <div class="ayuda">Ej: 15:30</div>
+        </div>
+        <div>
+          <label>Duración (minutos)</label>
+          <input type="number" name="duracion" min="15" step="15" placeholder="60" required>
+        </div>
+      </div>
+
+      <label>Cantidad de alumnos</label>
+      <input type="number" name="cantidad_alumnos" min="1" placeholder="Ej: 3" required>
+
+      <label>Instructor asignado</label>
+      <select name="rut_usuario" required>
+        {% for instructor in instructores %}
+          <option value="{{ instructor.rut_usuario }}">
+            {{ instructor.apellido }}, {{ instructor.nombre }}
+            — Nivel: {{ instructor.nivel_instructor }}
+            — Idiomas: {{ instructor.idioma }}
+          </option>
+        {% empty %}
+          <option disabled>No hay instructores disponibles para esta disciplina</option>
+        {% endfor %}
+      </select>
+
+      <button type="submit">Guardar clase</button>
+    </form>
+  </div>
+
+</body>
+</html>
