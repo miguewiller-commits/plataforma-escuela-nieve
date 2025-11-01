@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Registro de Usuario</title>
+    <style>
+        body { font-family: sans-serif; padding: 20px; }
+        form { max-width: 400px; margin: 0 auto; }
+        label { display: block; margin-top: 10px; }
+        input, select { width: 100%; padding: 6px; }
+        button { margin-top: 15px; padding: 8px 12px; background: #007bff; color: #fff; border: none; cursor: pointer; }
+        button:hover { background: #0056b3; }
+    </style>
+</head>
+<body>
+    <h1>Registro de Usuario</h1>
+
+    <form method="post">
+        {% csrf_token %}
+        {{ form.as_p }}
+        <button type="submit">Registrar</button>
+    </form>
+
+    {% if messages %}
+        <ul>
+            {% for m in messages %}
+                <li>{{ m }}</li>
+            {% endfor %}
+        </ul>
+    {% endif %}
+</body>
+</html>

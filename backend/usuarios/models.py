@@ -31,6 +31,7 @@ class Usuario(models.Model):
     # Contacto personal
     numero_telefono = models.CharField(max_length=30, null=True, blank=True)
     correo = models.EmailField(null=True, blank=True)
+    contraseña = models.CharField(max_length=255)
 
     # Idiomas que habla el instructor (texto libre tipo "español, inglés, portugués")
     idioma = models.CharField(max_length=200, null=True, blank=True)

@@ -43,6 +43,7 @@ INSTALLED_APPS = [
     "usuarios",
     "centros",
     "clases",
+    "backend_project",
 
     # REST API
     "rest_framework",
