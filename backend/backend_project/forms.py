@@ -9,6 +9,7 @@ class RegistroForm(forms.ModelForm):
     contraseña = forms.CharField(widget=forms.PasswordInput)
     confirmar_contraseña = forms.CharField(widget=forms.PasswordInput)
 
+    # si es FK:
     tipo_de_usuario = forms.ModelChoiceField(
         queryset=Identificador.objects.all(),
         empty_label="Seleccione un tipo de usuario",
@@ -31,12 +32,32 @@ class RegistroForm(forms.ModelForm):
         ]
 
     def clean(self):
-        cleaned_data = super().clean()
-        contraseña = cleaned_data.get("contraseña")
-        confirmar = cleaned_data.get("confirmar_contraseña")
+        cd = super().clean()
 
-        if contraseña != confirmar:
-            raise forms.ValidationError("Las contraseñas no coinciden")
+        # contraseñas iguales
+        if cd.get("contraseña") != cd.get("confirmar_contraseña"):
+            self.add_error("confirmar_contraseña", "Las contraseñas no coinciden")
 
-        return cleaned_data
+        tipo = cd.get("tipo_de_usuario")
+        # si usas FK, tipo.tipo_de_usuario es la cadena ('instructor', 'boleteria', etc.)
+        tipo_str = ""
+        if tipo is not None:
+            tipo_str = getattr(tipo, "tipo_de_usuario", str(tipo)).lower()
 
+        es_instructor = (tipo_str == "instructor")
+
+        # requeridos solo para instructores
+        if es_instructor:
+            if not cd.get("disciplina"):
+                self.add_error("disciplina", "Obligatorio para instructores.")
+            if not cd.get("nivel_instructor"):
+                self.add_error("nivel_instructor", "Obligatorio para instructores.")
+            if not cd.get("idioma"):
+                self.add_error("idioma", "Obligatorio para instructores.")
+        else:
+            # normaliza/limpia si no es instructor
+            cd["disciplina"] = None
+            cd["nivel_instructor"] = None
+            cd["idioma"] = ""
+
+        return cd

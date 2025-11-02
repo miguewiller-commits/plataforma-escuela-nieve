@@ -1,32 +1,108 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-    <meta charset="UTF-8">
-    <title>Registro de Usuario</title>
-    <style>
-        body { font-family: sans-serif; padding: 20px; }
-        form { max-width: 400px; margin: 0 auto; }
-        label { display: block; margin-top: 10px; }
-        input, select { width: 100%; padding: 6px; }
-        button { margin-top: 15px; padding: 8px 12px; background: #007bff; color: #fff; border: none; cursor: pointer; }
-        button:hover { background: #0056b3; }
-    </style>
+  <meta charset="UTF-8" />
+  <title>Registro de Usuario</title>
+  <style>
+    body { font-family: sans-serif; padding: 20px; }
+    form { max-width: 420px; margin: 0 auto; }
+    label { display:block; margin-top:10px; }
+    input, select { width:100%; padding:6px; }
+    button { margin-top:15px; padding:8px 12px; background:#007bff; color:#fff; border:none; cursor:pointer; }
+    button:hover { background:#0056b3; }
+    .oculto { display:none; }
+  </style>
 </head>
 <body>
-    <h1>Registro de Usuario</h1>
+  <h1>Registro de Usuario</h1>
 
-    <form method="post">
-        {% csrf_token %}
-        {{ form.as_p }}
-        <button type="submit">Registrar</button>
-    </form>
+  <form method="post">
+    {% csrf_token %}
 
-    {% if messages %}
-        <ul>
-            {% for m in messages %}
-                <li>{{ m }}</li>
-            {% endfor %}
-        </ul>
-    {% endif %}
+    <p>
+      <label for="id_rut_usuario">RUT</label>
+      {{ form.rut_usuario }}
+    </p>
+
+    <p>
+      <label for="id_nombre">Nombre</label>
+      {{ form.nombre }}
+    </p>
+
+    <p>
+      <label for="id_apellido">Apellido</label>
+      {{ form.apellido }}
+    </p>
+
+    <p>
+      <label for="id_correo">Email</label>
+      {{ form.correo }}
+    </p>
+
+    <p>
+      <label for="id_numero_telefono">Teléfono</label>
+      {{ form.numero_telefono }}
+    </p>
+
+    <p>
+      <label for="id_tipo_de_usuario">Tipo de usuario</label>
+      {{ form.tipo_de_usuario }}
+      <small>Ej: instructor, boleteria, jefe_centro…</small>
+    </p>
+
+    <!-- Bloque que se muestra solo para instructores -->
+    <div id="campos-instructor">
+      <p>
+        <label for="id_disciplina">Disciplina</label>
+        {{ form.disciplina }}
+      </p>
+      <p>
+        <label for="id_nivel_instructor">Nivel del instructor</label>
+        {{ form.nivel_instructor }}
+      </p>
+      <p>
+        <label for="id_idioma">Idiomas</label>
+        {{ form.idioma }}
+      </p>
+    </div>
+
+    <p>
+      <label for="id_contraseña">Contraseña</label>
+      {{ form.contraseña }}
+    </p>
+
+    <p>
+      <label for="id_confirmar_contraseña">Confirmar contraseña</label>
+      {{ form.confirmar_contraseña }}
+    </p>
+
+    <button type="submit">Registrar</button>
+  </form>
+
+  {% if messages %}
+    <ul>
+      {% for m in messages %}
+        <li>{{ m }}</li>
+      {% endfor %}
+    </ul>
+  {% endif %}
+
+  <script>
+    document.addEventListener("DOMContentLoaded", function () {
+      const selectTipo = document.getElementById("id_tipo_de_usuario");
+      const bloqueInstructor = document.getElementById("campos-instructor");
+
+      function actualizar() {
+        // para FK: el value suele ser la PK (por ej. "instructor" si así guardaste);
+        // para choices: también será el value. Lo pasamos a minúsculas.
+        const val = (selectTipo.value || "").toLowerCase();
+        const esInstructor = val.includes("instructor"); // robusto ante "Instructor" o "instructor"
+        bloqueInstructor.classList.toggle("oculto", !esInstructor);
+      }
+
+      selectTipo.addEventListener("change", actualizar);
+      actualizar(); // estado inicial
+    });
+  </script>
 </body>
 </html>
