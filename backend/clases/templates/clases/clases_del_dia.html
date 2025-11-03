@@ -1,287 +1,81 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-  <meta charset="UTF-8">
+  <meta charset="UTF-8" />
   <title>Clases del día</title>
-
-  <!-- 🎨 Estilos directamente en el archivo -->
   <style>
-    table {
-      border-collapse: collapse;
-      width: 100%;
-      font-size: 12px;
-    }
-    th, td {
-      border: 1px solid #aaa;
-      text-align: center;
-      padding: 4px;
-    }
-    th {
-      background: #eee;
-    }
+    body { font-family: system-ui, Arial, sans-serif; margin: 16px; }
+    h1 { margin: 8px 0 12px; }
 
-    .instructor-nombre {
-      font-weight: 600;
-      font-size: 12px;
-    }
+    /* Toolbar */
+    .toolbar { display:flex; gap:8px; align-items:center; margin-bottom:10px; flex-wrap:wrap; }
+    .toolbar .spacer { flex:1; }
+    .btn { border:1px solid #0e62f0; background:#0e62f0; color:#fff; padding:6px 10px; border-radius:6px; font-size:13px; text-decoration:none; cursor:pointer; }
+    .btn.secondary { background:#fff; color:#0e62f0; }
+    .btn.icon { width:30px; height:30px; display:inline-flex; align-items:center; justify-content:center; padding:0; }
+    .btn:hover { filter:brightness(0.95); }
 
-    .instructor-nivel {
-      font-size: 11px;
-    }
+    /* Tabla */
+    table { border-collapse:collapse; width:100%; font-size:12px; }
+    th, td { border:1px solid #bbb; text-align:center; padding:4px; }
+    th { background:#f4f4f4; position:sticky; top:0; }
+    .inst-col { width:220px; text-align:left; background:#fafafa; }
+    .inst-nombre { font-weight:600; display:flex; align-items:center; gap:6px; }
+    .inst-meta { font-size:11px; color:#666; }
+    .badge { padding:2px 8px; border-radius:999px; font-size:12px; }
+    .badge-ok { background:#e7f7ef; color:#0d7a49; border:1px solid #bde7d1; }
 
-    .instructor-disciplina {
-      margin-top: 2px;
-      font-size: 11px;
-    }
+    .clase-box { text-align:left; background:#eef6ff; border:1px solid #cfe5ff; padding:6px; border-radius:6px; font-size:11px; line-height:1.2; }
+    .disc { font-weight:600; }
+    .hora-rango { font-size:11px; color:#333; }
+    .empty { color:#bbb; }
 
-    .instructor-idiomas {
-      font-size: 10px;
-      margin-top: 4px;
-      line-height: 1.2;
-    }
+    .botonera-clase { margin-top:6px; display:flex; gap:4px; justify-content:flex-end; }
+    .btn-icon-edit { background:#007bff; color:#fff; border:none; border-radius:4px; width:28px; height:28px; font-size:14px; cursor:pointer; }
+    .btn-icon-delete { background:#dc3545; color:#fff; border:none; border-radius:4px; width:28px; height:28px; font-size:14px; cursor:pointer; }
 
-    .idiomas-lista {
-      margin: 2px 0 0 14px;
-      padding: 0;
-    }
+    .tabla-wrapper { overflow:auto; border:1px solid #ddd; border-radius:8px; padding-bottom:1px; }
 
-    .idiomas-lista li {
-      list-style-type: disc;
-      font-size: 10px;
-      line-height: 1.2;
-    }
-
-    .modal-backdrop {
-    position: fixed;
-    inset: 0;
-    background: rgba(0,0,0,0.4);
-    display: none;           /* oculto por defecto */
-    align-items: center;
-    justify-content: center;
-    z-index: 9999;
-  }
-
-  .modal {
-    background: #fff;
-    border-radius: 8px;
-    min-width: 300px;
-    max-width: 360px;
-    padding: 16px;
-    box-shadow: 0 20px 50px rgba(0,0,0,0.4);
-    font-size: 13px;
-  }
-
-  .modal h2 {
-    margin-top: 0;
-    font-size: 14px;
-    font-weight: 600;
-  }
-
-  .modal label {
-    display: block;
-    font-weight: 600;
-    font-size: 12px;
-    margin-top: 8px;
-  }
-
-  .modal input,
-  .modal select {
-    width: 100%;
-    padding: 6px;
-    font-size: 13px;
-    margin-top: 2px;
-    box-sizing: border-box;
-  }
-
-  .modal-row {
-    display: flex;
-    gap: 8px;
-  }
-  .modal-row > div {
-    flex: 1;
-  }
-
-  .modal-buttons {
-    display: flex;
-    justify-content: flex-end;
-    gap: 8px;
-    margin-top: 16px;
-  }
-
-  .btn {
-    border: none;
-    border-radius: 6px;
-    padding: 6px 10px;
-    font-size: 12px;
-    cursor: pointer;
-  }
-
-  .btn-cancel {
-    background: #bbb;
-    color: #000;
-  }
-
-  .btn-save {
-    background: #2ecc71;
-    color: #fff;
-  }
-
-  .btn-icon-edit {
-    background: #007bff;
-    color: #fff;
-  }
-
-  .btn-icon-delete {
-    background: #dc3545;
-    color: #fff;
-  }
-
-    .btn-icon-edit:hover {
-    filter: brightness(0.9);
-  }
-  .btn-icon-delete:hover {
-    filter: brightness(0.9);
-  }
-
-.botonera-clase {
-  margin-top: 6px;
-  display: flex;
-  flex-wrap: wrap;
-  gap: 4px;
-  justify-content: flex-end;
-}
-
-  .btn-icon-edit,
-  .btn-icon-delete {
-    border: none;
-    border-radius: 4px;
-    width: 28px;
-    height: 28px;
-    font-size: 14px;
-    line-height: 1;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    cursor: pointer;
-  }
-
-  .modal-backdrop {
-    position: fixed;
-    inset: 0;
-    background: rgba(0,0,0,0.4);
-    display: none;               /* IMPORTANTE: empieza cerrado */
-    align-items: center;
-    justify-content: center;
-    z-index: 9999;
-  }
-
-  .modal {
-    background: #fff;
-    border-radius: 8px;
-    min-width: 280px;
-    max-width: 360px;
-    padding: 16px;
-    box-shadow: 0 20px 50px rgba(0,0,0,0.45);
-    font-size: 13px;
-  }
-
-  .modal h2 {
-    margin-top: 0;
-    font-size: 14px;
-    font-weight: 600;
-  }
-
-  .modal label {
-    display: block;
-    font-weight: 600;
-    font-size: 12px;
-    margin-top: 8px;
-  }
-
-  .modal input,
-  .modal select {
-    width: 100%;
-    padding: 6px;
-    font-size: 13px;
-    margin-top: 2px;
-    box-sizing: border-box;
-  }
-
-  .modal-row {
-    display: flex;
-    gap: 8px;
-  }
-  .modal-row > div {
-    flex: 1;
-  }
-
-  .modal-buttons {
-    display: flex;
-    justify-content: flex-end;
-    gap: 8px;
-    margin-top: 16px;
-  }
-
-  .btn {
-    border: none;
-    border-radius: 6px;
-    padding: 4px 8px;
-    font-size: 12px;
-    cursor: pointer;
-    line-height: 1.2;
-    display: inline-flex;
-    align-items: center;
-    gap: 4px;
-  }
-
-  .btn-save {
-    background: #2ecc71;
-    color: #fff;
-  }
-
-  .btn-edit {
-    background: #007bff;
-    color: #fff;
-  }
-
-  .btn-delete {
-    background: #dc3545;
-    color: #fff;
-  }
-
-  .btn-cancel {
-    background: #bbb;
-    color: #000;
-  }
-
-  .botonera-clase {
-    margin-top: 6px;
-    display: flex;
-    flex-wrap: wrap;
-    gap: 4px;
-    justify-content: center;
-  }
+    /* Modales */
+    .modal-backdrop { position:fixed; inset:0; background:rgba(0,0,0,0.4); display:none; align-items:center; justify-content:center; z-index:9999; }
+    .modal { background:#fff; border-radius:8px; min-width:280px; max-width:380px; padding:16px; box-shadow:0 20px 50px rgba(0,0,0,0.45); font-size:13px; }
+    .modal h2 { margin:0 0 8px 0; font-size:14px; font-weight:600; }
+    .modal label { display:block; font-weight:600; font-size:12px; margin-top:8px; }
+    .modal input, .modal select { width:100%; padding:6px; font-size:13px; margin-top:2px; box-sizing:border-box; }
+    .modal-row { display:flex; gap:8px; }
+    .modal-row > div { flex:1; }
+    .modal-buttons { display:flex; justify-content:flex-end; gap:8px; margin-top:16px; }
+    .btn-cancel { background:#bbb; color:#000; border:none; border-radius:6px; padding:6px 10px; cursor:pointer; }
+    .btn-edit { background:#007bff; color:#fff; border:none; border-radius:6px; padding:6px 10px; cursor:pointer; }
+    .btn-save { background:#2ecc71; color:#fff; border:none; border-radius:6px; padding:6px 10px; cursor:pointer; }
   </style>
 </head>
-
 <body>
 
   <h1>Clases del día</h1>
-  <div class="subheader">
-    Fecha: {{ fecha|date:"M. d, Y" }}
+
+  <!-- Toolbar -->
+  <div class="toolbar">
+    <form id="filtro-dia" method="get" style="display:flex; gap:8px; align-items:center;">
+      <label>Fecha:</label>
+      <input type="date" name="fecha" id="inp-fecha" value="{{ fecha|date:'Y-m-d' }}" />
+      <button type="submit" class="btn secondary">Aplicar</button>
+    </form>
+
+    <div class="spacer"></div>
+
+    <button id="btn-prev" class="btn icon" title="Día anterior">◀</button>
+    <button id="btn-today" class="btn secondary" title="Hoy">Hoy</button>
+    <button id="btn-next" class="btn icon" title="Día siguiente">▶</button>
+
+    <button class="btn" onclick="abrirCrear()">+ Nueva clase</button>
   </div>
 
   {% if error_crear %}
   <div style="background:#fcc;border:1px solid #c00;padding:8px;color:#600;margin-bottom:12px;border-radius:6px;font-size:12px;">
     {{ error_crear }}
   </div>
-    {% endif %}
-
-  
-  <div style="margin-bottom:12px;">
-  <button class="btn btn-save" onclick="abrirCrear()">+ Nueva clase</button>
-</div>
-
+  {% endif %}
 
   <div class="tabla-wrapper">
     <table>
@@ -293,359 +87,309 @@
       </tr>
 
       {% for fila in filas_tabla %}
-        <tr>
-          <td class="inst-col">
-            <div class="instructor-nombre">
-                {{ fila.instructor.apellido }}, {{ fila.instructor.nombre }}
+      <tr>
+        <td class="inst-col">
+          <div class="inst-nombre">
+            {{ fila.instructor.apellido }}, {{ fila.instructor.nombre }}
+            {% if fila.activo %}<span class="badge badge-ok">Activo</span>{% endif %}
+          </div>
+          <div class="inst-meta">
+            Nivel {{ fila.instructor.nivel_instructor|default:"—" }} ·
+            {{ fila.instructor.disciplina|default:"—" }}
+            {% if fila.instructor.idioma %} · {{ fila.instructor.idioma }}{% endif %}
+          </div>
+        </td>
+
+        {% for clase in fila.celdas %}
+        <td>
+          {% if clase %}
+          <div class="clase-box">
+            <div class="disc">{{ clase.disciplina_clase|upper }} (N{{ clase.nivel_clase }})</div>
+            <div class="hora-rango">{{ clase.hora_inicio|time:"H:i" }} – {{ clase.hora_fin|time:"H:i" }}</div>
+            <div>{{ clase.nombre_titular }}</div>
+            <div>Tel: {{ clase.titular_telefono }}</div>
+            <div>{{ clase.cantidad_alumnos }} alumno(s)</div>
+
+            <div class="botonera-clase">
+              <button
+                class="btn-icon-edit"
+                title="Modificar"
+                data-id="{{ clase.id_clase }}"
+                data-nombre="{{ clase.nombre_titular|escapejs }}"
+                data-telefono="{{ clase.titular_telefono|escapejs }}"
+                data-nivel="{{ clase.nivel_clase }}"
+                data-alumnos="{{ clase.cantidad_alumnos }}"
+                data-duracion="{{ clase.duracion }}"
+                data-instructor="{{ clase.rut_usuario_id }}"
+                data-disciplina="{{ clase.disciplina_clase|lower }}"
+                onclick="abrirEditarDesdeBoton(this)"
+              >✏️</button>
+
+              <button
+                class="btn-icon-delete"
+                title="Cancelar clase"
+                data-id="{{ clase.id_clase }}"
+                data-nombre="{{ clase.nombre_titular|escapejs }}"
+                onclick="abrirCancelarDesdeBoton(this)"
+              >🗑️</button>
             </div>
-
-            <div class="instructor-nivel">
-                Nivel: {{ fila.instructor.nivel_instructor }}
-            </div>
-
-            <div class="instructor-disciplina">
-                Disciplina: {{ fila.instructor.disciplina }}
-            </div>
-
-            <div class="instructor-idiomas">
-                Idiomas:
-                <span class="idioma-chip">{{ fila.instructor.idioma }}</span>
-            </div>
-            </td>
-
-
-
-          {% for clase in fila.celdas %}
-            <td>
-              {% if clase %}
-              <div class="clase-box">
-                <div class="disc">
-                  {{ clase.disciplina_clase }} (Nivel {{ clase.nivel_clase }})
-                </div>
-
-                <div class="hora-rango">
-                  {{ clase.hora_inicio|time:"H:i" }} - {{ clase.hora_fin|time:"H:i" }}
-                </div>
-
-                <div class="titular-nombre">
-                  {{ clase.nombre_titular }}
-                </div>
-
-                <div class="titular-telefono">
-                  Tel: {{ clase.titular_telefono }}
-                </div>
-
-                <div>
-                  {{ clase.cantidad_alumnos }} alumnos
-                </div>
-
-                <div class="botonera-clase">
-
-                  <!-- ✏️ EDITAR -->
-                  <button
-                    class="btn btn-icon-edit"
-                    title="Modificar"
-                    data-id="{{ clase.id_clase }}"
-                    data-nombre="{{ clase.nombre_titular|escapejs }}"
-                    data-telefono="{{ clase.titular_telefono|escapejs }}"
-                    data-nivel="{{ clase.nivel_clase }}"
-                    data-alumnos="{{ clase.cantidad_alumnos }}"
-                    data-duracion="{{ clase.duracion }}"
-                    data-instructor="{{ clase.rut_usuario_id }}"
-                    data-disciplina="{{ clase.disciplina_clase|lower }}"
-                    onclick="abrirEditarDesdeBoton(this)"
-                  >
-                    ✏️
-                  </button>
-
-                  <!-- 🗑️ CANCELAR -->
-                  <button
-                    class="btn btn-icon-delete"
-                    title="Cancelar clase"
-                    data-id="{{ clase.id_clase }}"
-                    data-nombre="{{ clase.nombre_titular|escapejs }}"
-                    onclick="abrirCancelarDesdeBoton(this)"
-                  >
-                    🗑️
-                  </button>
-
-                </div>
-              </div>
-
-              {% else %}
-                <div class="empty">-</div>
-              {% endif %}
-            </td>
-          {% endfor %}
-        </tr>
+          </div>
+          {% else %}
+          <div class="empty">·</div>
+          {% endif %}
+        </td>
+        {% endfor %}
+      </tr>
       {% endfor %}
     </table>
   </div>
 
- <!-- MODAL CREAR CLASE -->
-<div id="modal-crear" class="modal-backdrop">
-  <div class="modal">
-    <h2>Nueva clase</h2>
+  <!-- MODAL CREAR -->
+  <div id="modal-crear" class="modal-backdrop">
+    <div class="modal">
+      <h2>Nueva clase</h2>
+      <form method="POST" action="{% url 'crear_clase' %}">
+        {% csrf_token %}
 
-    <form method="POST" action="{% url 'crear_clase' %}">
-      {% csrf_token %}
+        <label>Disciplina</label>
+        <select name="disciplina_clase" id="nueva-disciplina" required onchange="filtrarInstructoresCrear()">
+          <option value="ski">Ski</option>
+          <option value="snow">Snow</option>
+        </select>
 
-      <label>Disciplina</label>
-      <select name="disciplina_clase" id="nueva-disciplina" required onchange="filtrarInstructoresCrear()">
-        <option value="ski">Ski</option>
-        <option value="snow">Snow</option>
-      </select>
+        <label>Nombre titular</label>
+        <input type="text" name="nombre_titular" required>
 
-      <label>Nombre titular</label>
-      <input type="text" name="nombre_titular" required>
+        <label>Teléfono titular</label>
+        <input type="text" name="titular_telefono" required>
 
-      <label>Teléfono titular</label>
-      <input type="text" name="titular_telefono" required>
+        <label>Nivel de la clase</label>
+        <select name="nivel_clase" required>
+          <option value="1">Nivel 1</option>
+          <option value="2">Nivel 2</option>
+          <option value="3">Nivel 3</option>
+        </select>
 
-      <label>Nivel de la clase</label>
-      <select name="nivel_clase" required>
-        <option value="1">Nivel 1</option>
-        <option value="2">Nivel 2</option>
-        <option value="3">Nivel 3</option>
-      </select>
-
-      <div class="modal-row">
-        <div>
-          <label>Hora inicio (hoy)</label>
-          <input type="time" name="hora_sola" required>
+        <div class="modal-row">
+          <div>
+            <label>Hora inicio (hoy)</label>
+            <input type="time" name="hora_sola" required>
+          </div>
+          <div>
+            <label>Duración (min)</label>
+            <input type="number" name="duracion" min="15" step="15" required>
+          </div>
         </div>
-        <div>
-          <label>Duración (min)</label>
-          <input type="number" name="duracion" min="15" step="15" required>
+
+        <label>Cantidad de alumnos</label>
+        <input type="number" name="cantidad_alumnos" min="1" required>
+
+        <label>Instructor</label>
+        <select name="rut_usuario" id="nueva-instructor" required>
+          {% for fila in filas_tabla %}
+            {% with inst=fila.instructor %}
+              <option value="{{ inst.rut_usuario }}" data-disciplina="{{ inst.disciplina|lower }}">
+                {{ inst.apellido }}, {{ inst.nombre }} (Nivel {{ inst.nivel_instructor }} / {{ inst.disciplina }})
+              </option>
+            {% endwith %}
+          {% endfor %}
+        </select>
+
+        <div class="modal-buttons">
+          <button type="button" class="btn-cancel" onclick="cerrarCrear()">Cerrar</button>
+          <button type="submit" class="btn-save">Guardar</button>
         </div>
-      </div>
-
-      <label>Cantidad de alumnos</label>
-      <input type="number" name="cantidad_alumnos" min="1" required>
-
-      <label>Instructor</label>
-      <select name="rut_usuario" id="nueva-instructor" required>
-        {% for fila in filas_tabla %}
-          {% with inst=fila.instructor %}
-            <option
-              value="{{ inst.rut_usuario }}"
-              data-disciplina="{{ inst.disciplina|lower }}">
-              {{ inst.apellido }}, {{ inst.nombre }}
-              (Nivel {{ inst.nivel_instructor }} / {{ inst.disciplina }})
-            </option>
-          {% endwith %}
-        {% endfor %}
-      </select>
-
-      <div class="modal-buttons">
-        <button type="button" class="btn btn-cancel" onclick="cerrarCrear()">Cerrar</button>
-        <button type="submit" class="btn btn-save">Guardar</button>
-      </div>
-    </form>
+      </form>
+    </div>
   </div>
-</div>
 
-<!-- MODAL EDITAR CLASE -->
-<!-- MODAL EDITAR CLASE -->
-<div id="modal-editar" class="modal-backdrop">
-  <div class="modal">
-    <h2>Modificar clase</h2>
+  <!-- MODAL EDITAR -->
+  <div id="modal-editar" class="modal-backdrop">
+    <div class="modal">
+      <h2>Modificar clase</h2>
+      <form method="POST" id="form-editar">
+        {% csrf_token %}
 
-    <form method="POST" id="form-editar">
-      {% csrf_token %}
+        <input type="hidden" id="edit-id-clase">
+        <input type="hidden" id="edit-disciplina" name="disciplina_clase">
 
-      <!-- campos ocultos -->
-      <input type="hidden" id="edit-id-clase">
-      <input type="hidden" id="edit-disciplina" name="disciplina_clase">
+        <label>Nombre titular</label>
+        <input type="text" name="nombre_titular" id="edit-nombre" required>
 
-      <label>Nombre titular</label>
-      <input type="text" name="nombre_titular" id="edit-nombre" required>
+        <label>Teléfono titular</label>
+        <input type="text" name="titular_telefono" id="edit-telefono" required>
 
-      <label>Teléfono titular</label>
-      <input type="text" name="titular_telefono" id="edit-telefono" required>
+        <label>Nivel de la clase</label>
+        <select name="nivel_clase" id="edit-nivel" required>
+          <option value="1">Nivel 1</option>
+          <option value="2">Nivel 2</option>
+          <option value="3">Nivel 3</option>
+        </select>
 
-      <label>Nivel de la clase</label>
-      <select name="nivel_clase" id="edit-nivel" required>
-        <option value="1">Nivel 1</option>
-        <option value="2">Nivel 2</option>
-        <option value="3">Nivel 3</option>
-      </select>
+        <label>Cantidad de alumnos</label>
+        <input type="number" name="cantidad_alumnos" id="edit-alumnos" min="1" required>
 
-      <label>Cantidad de alumnos</label>
-      <input type="number" name="cantidad_alumnos" id="edit-alumnos" min="1" required>
+        <label>Duración (min)</label>
+        <input type="number" name="duracion" id="edit-duracion" min="15" step="15" required>
 
-      <label>Duración (min)</label>
-      <input type="number" name="duracion" id="edit-duracion" min="15" step="15" required>
+        <label>Instructor</label>
+        <select name="rut_usuario" id="edit-instructor" required>
+          {% for fila in filas_tabla %}
+            {% with inst=fila.instructor %}
+              <option value="{{ inst.rut_usuario }}" data-disciplina="{{ inst.disciplina|lower }}">
+                {{ inst.apellido }}, {{ inst.nombre }} (Nivel {{ inst.nivel_instructor }} / {{ inst.disciplina }})
+              </option>
+            {% endwith %}
+          {% endfor %}
+        </select>
 
-      <label>Instructor</label>
-      <select name="rut_usuario" id="edit-instructor" required>
-        {% for fila in filas_tabla %}
-          {% with inst=fila.instructor %}
-            <option
-              value="{{ inst.rut_usuario }}"
-              data-disciplina="{{ inst.disciplina|lower }}">
-              {{ inst.apellido }}, {{ inst.nombre }}
-              (Nivel {{ inst.nivel_instructor }} / {{ inst.disciplina }})
-            </option>
-          {% endwith %}
-        {% endfor %}
-      </select>
-
-      <div class="modal-buttons">
-        <button type="button" class="btn btn-cancel" onclick="cerrarEditar()">Cerrar</button>
-        <button type="submit" class="btn btn-edit">Guardar cambios</button>
-      </div>
-    </form>
+        <div class="modal-buttons">
+          <button type="button" class="btn-cancel" onclick="cerrarEditar()">Cerrar</button>
+          <button type="submit" class="btn-edit">Guardar cambios</button>
+        </div>
+      </form>
+    </div>
   </div>
-</div>
 
-
-<!-- MODAL CANCELAR CLASE -->
-<div id="modal-cancelar" class="modal-backdrop">
-  <div class="modal">
-    <h2>Cancelar clase</h2>
-
-    <p id="cancelar-texto" style="font-size:13px; margin-bottom:12px;"></p>
-
-    <form method="POST" id="form-cancelar">
-      {% csrf_token %}
-      <div class="modal-buttons">
-        <button type="button" class="btn btn-cancel" onclick="cerrarCancelar()">No</button>
-        <button type="submit" class="btn btn-delete">Sí, cancelar</button>
-      </div>
-    </form>
+  <!-- MODAL CANCELAR -->
+  <div id="modal-cancelar" class="modal-backdrop">
+    <div class="modal">
+      <h2>Cancelar clase</h2>
+      <p id="cancelar-texto" style="font-size:13px; margin-bottom:12px;"></p>
+      <form method="POST" id="form-cancelar">
+        {% csrf_token %}
+        <div class="modal-buttons">
+          <button type="button" class="btn-cancel" onclick="cerrarCancelar()">No</button>
+          <button type="submit" class="btn-edit" style="background:#dc3545;">Sí, cancelar</button>
+        </div>
+      </form>
+    </div>
   </div>
-</div>
 
+  <script>
+    // ---------- Navegación de días ----------
+    const formDia  = document.getElementById('filtro-dia');
+    const inpFecha = document.getElementById('inp-fecha');
+    const btnPrev  = document.getElementById('btn-prev');
+    const btnNext  = document.getElementById('btn-next');
+    const btnToday = document.getElementById('btn-today');
 
-<script>
-  // ---------- CREAR (igual que ya tienes) ----------
-  function abrirCrear() {
-    document.getElementById('modal-crear').style.display = 'flex';
-    filtrarInstructoresCrear();
-  }
+    function ymd(d){ return d.toISOString().slice(0,10); }
 
-  function cerrarCrear() {
-    document.getElementById('modal-crear').style.display = 'none';
-  }
+    function moveDays(delta){
+      const base = inpFecha.value ? new Date(inpFecha.value + 'T00:00:00') : new Date();
+      base.setHours(0,0,0,0);
+      base.setDate(base.getDate() + delta);
+      inpFecha.value = ymd(base);
+      formDia.submit();
+    }
 
-  function filtrarInstructoresCrear() {
-    const disciplinaElegida = document.getElementById('nueva-disciplina').value;
-    const selectInstructores = document.getElementById('nueva-instructor');
-    const opciones = selectInstructores.querySelectorAll("option");
-
-    opciones.forEach(opt => {
-      const d = opt.getAttribute("data-disciplina"); // ski | snow | ambos
-      const visible =
-        (disciplinaElegida === "ski"  && (d === "ski"  || d === "ambos")) ||
-        (disciplinaElegida === "snow" && (d === "snow" || d === "ambos"));
-      opt.hidden = !visible;
+    btnPrev.addEventListener('click', e => { e.preventDefault(); moveDays(-1); });
+    btnNext.addEventListener('click', e => { e.preventDefault(); moveDays(1);  });
+    btnToday.addEventListener('click', e => {
+      e.preventDefault();
+      const t = new Date(); t.setHours(0,0,0,0);
+      inpFecha.value = ymd(t);
+      formDia.submit();
     });
 
-    const current = selectInstructores.selectedOptions[0];
-    if (current && current.hidden) {
-      const firstVisible = Array.from(opciones).find(o => !o.hidden);
-      if (firstVisible) {
-        firstVisible.selected = true;
-      } else {
-        selectInstructores.value = "";
+    // ---------- CREAR ----------
+    function abrirCrear(){
+      document.getElementById('modal-crear').style.display = 'flex';
+      filtrarInstructoresCrear();
+    }
+    function cerrarCrear(){ document.getElementById('modal-crear').style.display = 'none'; }
+
+    function filtrarInstructoresCrear(){
+      const disc = document.getElementById('nueva-disciplina').value; // ski | snow
+      const sel = document.getElementById('nueva-instructor');
+      const opciones = sel.querySelectorAll('option');
+
+      opciones.forEach(opt => {
+        const d = opt.getAttribute('data-disciplina'); // ski | snow | ambos
+        const visible =
+          (disc === 'ski'  && (d === 'ski'  || d === 'ambos')) ||
+          (disc === 'snow' && (d === 'snow' || d === 'ambos'));
+        opt.hidden = !visible;
+      });
+
+      const current = sel.selectedOptions[0];
+      if (current && current.hidden){
+        const firstVisible = Array.from(opciones).find(o => !o.hidden);
+        if (firstVisible) firstVisible.selected = true; else sel.value = '';
       }
     }
-  }
 
+    // ---------- EDITAR ----------
+    function abrirEditarDesdeBoton(btn){
+      abrirEditar(
+        btn.dataset.id,
+        btn.dataset.nombre,
+        btn.dataset.telefono,
+        btn.dataset.nivel,
+        btn.dataset.alumnos,
+        btn.dataset.duracion,
+        btn.dataset.instructor,
+        btn.dataset.disciplina
+      );
+    }
 
-  // ---------- EDITAR ----------
-  function abrirEditarDesdeBoton(btn) {
-    const id = btn.dataset.id;
-    const nombre = btn.dataset.nombre;
-    const tel = btn.dataset.telefono;
-    const nivel = btn.dataset.nivel;
-    const alumnos = btn.dataset.alumnos;
-    const duracion = btn.dataset.duracion;
-    const instructor = btn.dataset.instructor;
-    const disciplina = btn.dataset.disciplina; // "ski" o "snow"
+    function abrirEditar(id, nombre, tel, nivel, alumnos, duracion, instructor, disciplina){
+      const modal = document.getElementById('modal-editar');
+      modal.style.display = 'flex';
 
-    abrirEditar(id, nombre, tel, nivel, alumnos, duracion, instructor, disciplina);
-  }
+      document.getElementById('edit-id-clase').value = id;
+      document.getElementById('edit-nombre').value = nombre;
+      document.getElementById('edit-telefono').value = tel;
+      document.getElementById('edit-nivel').value = nivel;
+      document.getElementById('edit-alumnos').value = alumnos;
+      document.getElementById('edit-duracion').value = duracion;
+      document.getElementById('edit-disciplina').value = disciplina;
 
-  function abrirEditar(id, nombre, tel, nivel, alumnos, duracion, instructor, disciplina) {
-    const modal = document.getElementById('modal-editar');
-    modal.style.display = 'flex';
+      filtrarInstructoresEditar(disciplina, instructor);
 
-    // completar campos
-    document.getElementById('edit-id-clase').value = id;
-    document.getElementById('edit-nombre').value = nombre;
-    document.getElementById('edit-telefono').value = tel;
-    document.getElementById('edit-nivel').value = nivel;
-    document.getElementById('edit-alumnos').value = alumnos;
-    document.getElementById('edit-duracion').value = duracion;
-    document.getElementById('edit-disciplina').value = disciplina;
+      const formEditar = document.getElementById('form-editar');
+      formEditar.action = `/clases/editar/${id}/`;
+    }
 
-    // filtrar instructores válidos y marcar el actual
-    filtrarInstructoresEditar(disciplina, instructor);
+    function cerrarEditar(){ document.getElementById('modal-editar').style.display = 'none'; }
 
-    // ajustar action del form
-    const formEditar = document.getElementById('form-editar');
-    formEditar.action = `/clases/editar/${id}/`;
-  }
+    function filtrarInstructoresEditar(disciplinaClase, instructorActual){
+      const sel = document.getElementById('edit-instructor');
+      const opciones = sel.querySelectorAll('option');
 
-  function cerrarEditar() {
-    document.getElementById('modal-editar').style.display = 'none';
-  }
+      opciones.forEach(opt => {
+        const d = opt.getAttribute('data-disciplina');
+        const visible =
+          (disciplinaClase === 'ski'  && (d === 'ski'  || d === 'ambos')) ||
+          (disciplinaClase === 'snow' && (d === 'snow' || d === 'ambos'));
+        opt.hidden = !visible;
+      });
 
-  function filtrarInstructoresEditar(disciplinaClase, instructorActual) {
-    const selectInst = document.getElementById('edit-instructor');
-    const opciones = selectInst.querySelectorAll("option");
-
-    opciones.forEach(opt => {
-      const d = opt.getAttribute("data-disciplina"); // ski | snow | ambos
-      const visible =
-        (disciplinaClase === "ski"  && (d === "ski"  || d === "ambos")) ||
-        (disciplinaClase === "snow" && (d === "snow" || d === "ambos"));
-      opt.hidden = !visible;
-    });
-
-    // Seleccionamos al instructor actual
-    selectInst.value = instructorActual;
-
-    // Si el actual quedó oculto, elegimos el primero visible
-    const selectedOption = selectInst.selectedOptions[0];
-    if (!selectedOption || selectedOption.hidden) {
-      const firstVisible = Array.from(opciones).find(o => !o.hidden);
-      if (firstVisible) {
-        selectInst.value = firstVisible.value;
-      } else {
-        selectInst.value = "";
+      sel.value = instructorActual;
+      const selected = sel.selectedOptions[0];
+      if (!selected || selected.hidden){
+        const firstVisible = Array.from(opciones).find(o => !o.hidden);
+        sel.value = firstVisible ? firstVisible.value : '';
       }
     }
-  }
 
+    // ---------- CANCELAR ----------
+    function abrirCancelarDesdeBoton(btn){
+      abrirCancelar(btn.dataset.id, btn.dataset.nombre);
+    }
 
-  // ---------- CANCELAR ----------
-  function abrirCancelarDesdeBoton(btn) {
-    const id = btn.dataset.id;
-    const nombre = btn.dataset.nombre;
-    abrirCancelar(id, nombre);
-  }
+    function abrirCancelar(id, nombreTitular){
+      const modal = document.getElementById('modal-cancelar');
+      modal.style.display = 'flex';
+      document.getElementById('cancelar-texto').innerText =
+        `¿Seguro que quieres cancelar la clase de "${nombreTitular}"?`;
+      const formCancelar = document.getElementById('form-cancelar');
+      formCancelar.action = `/clases/eliminar/${id}/`;
+    }
 
-  function abrirCancelar(id, nombreTitular) {
-    const modal = document.getElementById('modal-cancelar');
-    modal.style.display = 'flex';
-
-    document.getElementById('cancelar-texto').innerText =
-      `¿Seguro que quieres cancelar la clase de "${nombreTitular}"?`;
-
-    const formCancelar = document.getElementById('form-cancelar');
-    formCancelar.action = `/clases/eliminar/${id}/`;
-  }
-
-  function cerrarCancelar() {
-    document.getElementById('modal-cancelar').style.display = 'none';
-  }
-</script>
-
-
-
+    function cerrarCancelar(){ document.getElementById('modal-cancelar').style.display = 'none'; }
+  </script>
 
 </body>
 </html>

@@ -1,0 +1,16 @@
+<h2>Reporte mensual ({{ mes }})</h2>
+<form method="get">
+  <input type="month" name="mes" value="{{ mes }}">
+  <button type="submit">Ver</button>
+</form>
+
+<table border="1" cellpadding="4">
+  <tr><th>Instructor</th><th>Horas totales</th><th>Clases dictadas</th></tr>
+  {% for fila in resumen %}
+  <tr>
+    <td>{{ fila.rut_usuario__nombre }} {{ fila.rut_usuario__apellido }}</td>
+    <td>{{ fila.horas_totales }} min</td>
+    <td>{{ fila.cantidad_clases }}</td>
+  </tr>
+  {% endfor %}
+</table>

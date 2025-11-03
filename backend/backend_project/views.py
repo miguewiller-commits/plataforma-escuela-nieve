@@ -28,8 +28,8 @@ def login_view(request):
                     return redirect('clases_del_dia')  # URL name de tu vista
                 elif tipo == 'instructor':
                     return redirect('pagina_instructor')
-                elif tipo == 'jefe_centro':
-                    return redirect('pagina_director')
+                elif tipo == 'director':
+                    return redirect('director_dashboard')
                 else:
                     messages.error(request, "Tipo de usuario no reconocido.")
             else:
@@ -50,7 +50,7 @@ def es_director(user):
 @login_required
 @user_passes_test(es_director)
 def pagina_director(request):
-    return render(request, 'director.html')
+    return render(request, 'director/dashboard.html')
 
 
 def registrar_usuario(request):

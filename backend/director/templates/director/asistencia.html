@@ -1,0 +1,14 @@
+<h2>Asistencia de Instructores ({{ fecha }})</h2>
+<form method="post">
+  {% csrf_token %}
+  <table border="1" cellpadding="4">
+    <tr><th>Instructor</th><th>Activo</th></tr>
+    {% for inst in instructores %}
+    <tr>
+      <td>{{ inst.nombre }} {{ inst.apellido }}</td>
+      <td><input type="checkbox" name="instructor_{{ inst.rut_usuario }}" {% if estados.inst.rut_usuario %}checked{% endif %}></td>
+    </tr>
+    {% endfor %}
+  </table>
+  <button type="submit">Guardar cambios</button>
+</form>

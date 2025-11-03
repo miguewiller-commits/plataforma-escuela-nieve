@@ -23,6 +23,7 @@ urlpatterns = [
     path('login/', views.login_view, name='login'),
     path('logout/', views.logout_view, name='logout'),
     path('registrar/', views.registrar_usuario, name='registrar_usuario'),
+    path('director/', include('director.urls')),
 
     # boletería
     path("clases/", include("clases.urls")),

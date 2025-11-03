@@ -1,0 +1,299 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <title>Panel del Director</title>
+  <style>
+    body { font-family: system-ui, Arial, sans-serif; margin: 16px; }
+    h1 { margin: 8px 0 12px; }
+
+    .toolbar {
+      display: flex; gap: 12px; align-items: center; margin-bottom: 12px;
+      flex-wrap: wrap;
+    }
+    .toolbar form { display: flex; gap: 8px; align-items: center; }
+
+    .actions {
+      margin-left: auto;
+      display: flex; gap: 8px; flex-wrap: wrap;
+    }
+    .btn {
+      border: 1px solid #0e62f0; background: #0e62f0; color: #fff; 
+      padding: 6px 10px; border-radius: 6px; font-size: 13px; text-decoration: none;
+      cursor: pointer;
+    }
+    .btn.secondary { background: #fff; color: #0e62f0; }
+    .btn:hover { filter: brightness(0.95); }
+
+    .badge { padding: 2px 8px; border-radius: 999px; font-size: 12px; }
+    .badge-ok { background: #e7f7ef; color: #0d7a49; border: 1px solid #bde7d1; }
+    .badge-off { background: #fdeaea; color: #9b1c1c; border: 1px solid #f5c3c3; }
+
+    table { width: 100%; border-collapse: collapse; font-size: 12px; }
+    th, td { border: 1px solid #bbb; text-align: center; padding: 4px; }
+    th { background: #f4f4f4; position: sticky; top: 0; }
+
+    .inst-col { width: 250px; text-align: left; background: #fafafa; }
+    .inst-nombre { font-weight: 600; display:flex; align-items:center; gap:6px; }
+    .inst-meta { font-size: 11px; color: #666; }
+    .fila-inactiva .inst-col { background: #f9f0f0; }
+    .fila-inactiva td { opacity: 0.55; }
+
+    .clase-box {
+      text-align: left;
+      background: #eef6ff; border: 1px solid #cfe5ff;
+      padding: 6px; border-radius: 6px; font-size: 11px; line-height: 1.2;
+    }
+    .disc { font-weight: 600; }
+    .hora { font-size: 11px; color: #333; }
+    .empty { color: #bbb; }
+
+    .summary { margin-bottom: 8px; color: #444; }
+    .grid-wrap { overflow: auto; border: 1px solid #ddd; border-radius: 8px; padding-bottom: 1px; }
+
+    /* --- Modales (asistencia / crear / eliminar) --- */
+    .modal-backdrop {
+      position: fixed; inset: 0; background: rgba(0,0,0,0.45);
+      display: none; align-items: center; justify-content: center; z-index: 9999;
+    }
+    .modal {
+      background: #fff; border-radius: 10px; width: 560px; max-width: 94%;
+      padding: 16px; box-shadow: 0 18px 60px rgba(0,0,0,0.4);
+      font-size: 14px;
+    }
+    .modal h3 { margin: 0 0 10px; }
+    .modal .list {
+      max-height: 380px; overflow: auto; border: 1px solid #e3e3e3;
+      border-radius: 8px; padding: 8px; background: #fafafa;
+    }
+    .modal .row {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 6px 8px; border-bottom: 1px dashed #e8e8e8;
+    }
+    .modal .row:last-child { border-bottom: 0; }
+    .modal .meta { color: #666; font-size: 12px; }
+    .modal .btns { display: flex; justify-content: flex-end; gap: 8px; margin-top: 12px; }
+    .modal label { font-weight: 600; font-size: 12px; }
+    .modal input, .modal select {
+      width: 100%; padding: 6px; font-size: 13px; margin-top: 2px; box-sizing: border-box;
+    }
+  </style>
+</head>
+<body>
+
+  <h1>Calendario del Director</h1>
+
+  <div class="toolbar">
+    <!-- Filtro de fecha y solo activos -->
+    <form method="get" id="filtro-dia">
+      <label>Fecha:</label>
+      <input type="date" name="fecha" id="inp-fecha" value="{{ fecha|date:'Y-m-d' }}">
+      <label>
+        <input type="checkbox" name="solo_activos" value="1" {% if solo_activos %}checked{% endif %}>
+        Solo activos
+      </label>
+      <button type="submit" class="btn secondary">Aplicar</button>
+    </form>
+
+    <!-- Acciones -->
+    <div class="actions">
+      <button type="button" class="btn" onclick="abrirAsistencia()">Cambiar asistencia</button>
+      <button type="button" class="btn secondary" onclick="abrirCrearInstructor()">Nuevo instructor</button>
+
+      <a class="btn secondary" href="{% url 'director_reportes' %}?mes={{ fecha|date:'Y-m' }}">Reportes del mes</a>
+      <a class="btn secondary" href="{% url 'director_historial' %}?desde={{ fecha|date:'Y-m-d'|add:'-6' }}&hasta={{ fecha|date:'Y-m-d' }}">Ver historial</a>
+    </div>
+  </div>
+
+  <div class="summary">
+    Total horas día: <b>{{ resumen_horas }}</b> h
+  </div>
+
+  <div class="grid-wrap">
+    <table>
+      <tr>
+        <th>Instructor</th>
+        {% for h in horas %}
+          <th>{{ h }}</th>
+        {% endfor %}
+      </tr>
+
+      {% for fila in filas_tabla %}
+        <tr class="{% if not fila.activo %}fila-inactiva{% endif %}">
+          <td class="inst-col">
+            <div class="inst-nombre">
+              {{ fila.instructor.apellido }}, {{ fila.instructor.nombre }}
+              {% if fila.activo %}
+                <span class="badge badge-ok">Activo</span>
+              {% else %}
+                <span class="badge badge-off">Inactivo</span>
+              {% endif %}
+            </div>
+            <div class="inst-meta">
+              Nivel {{ fila.instructor.nivel_instructor|default:"—" }} ·
+              {{ fila.instructor.disciplina|default:"—" }}
+              {% if fila.instructor.idioma %} · {{ fila.instructor.idioma }}{% endif %}
+            </div>
+
+            <div style="margin-top:6px;">
+              <button type="button" class="btn secondary"
+                onclick="abrirEliminarInstructor('{{ fila.instructor.rut_usuario }}', '{{ fila.instructor.apellido|escapejs }}, {{ fila.instructor.nombre|escapejs }}')">
+                Eliminar
+              </button>
+            </div>
+          </td>
+
+          {% for clase in fila.celdas %}
+            <td>
+              {% if clase %}
+                <div class="clase-box">
+                  <div class="disc">{{ clase.disciplina_clase|upper }} (N{{ clase.nivel_clase }})</div>
+                  <div class="hora">{{ clase.hora_inicio|time:"H:i" }}–{{ clase.hora_fin|time:"H:i" }}</div>
+                  <div>{{ clase.nombre_titular }}</div>
+                  <div>Tel: {{ clase.titular_telefono }}</div>
+                  <div>{{ clase.cantidad_alumnos }} alumno(s)</div>
+                </div>
+              {% else %}
+                <div class="empty">·</div>
+              {% endif %}
+            </td>
+          {% endfor %}
+        </tr>
+      {% endfor %}
+    </table>
+  </div>
+
+  <!-- MODAL: Asistencia -->
+  <div id="modal-asistencia" class="modal-backdrop">
+    <div class="modal">
+      <h3>Asistencia — {{ fecha|date:"d/m/Y" }}</h3>
+      <form id="form-asistencia">
+        <input type="hidden" name="fecha" value="{{ fecha|date:'Y-m-d' }}">
+        <div class="list">
+          {% for fila in filas_tabla %}
+            <div class="row">
+              <div>
+                <div><strong>{{ fila.instructor.apellido }}, {{ fila.instructor.nombre }}</strong></div>
+                <div class="meta">
+                  Nivel {{ fila.instructor.nivel_instructor|default:"—" }} ·
+                  {{ fila.instructor.disciplina|default:"—" }}
+                  {% if fila.instructor.idioma %} · {{ fila.instructor.idioma }}{% endif %}
+                </div>
+              </div>
+              <div>
+                <label>
+                  <input type="checkbox" name="activos" value="{{ fila.instructor.rut_usuario }}" {% if fila.activo %}checked{% endif %}> Activo
+                </label>
+              </div>
+            </div>
+          {% endfor %}
+        </div>
+        <div class="btns">
+          <button type="button" class="btn secondary" onclick="cerrarAsistencia()">Cancelar</button>
+          <button type="submit" class="btn">Guardar</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- MODAL: Crear instructor -->
+  <div id="modal-crear-inst" class="modal-backdrop">
+    <div class="modal">
+      <h3>Nuevo instructor</h3>
+      <form method="post" action="{% url 'director_crear_instructor' %}">
+        {% csrf_token %}
+        <input type="hidden" name="fecha" value="{{ fecha|date:'Y-m-d' }}">
+        <input type="hidden" name="solo_activos" value="{% if solo_activos %}1{% endif %}">
+        <div style="display:grid; grid-template-columns: 1fr 1fr; gap:8px;">
+          <div><label>RUT</label><input type="text" name="rut_usuario" required></div>
+          <div><label>Contraseña</label><input type="password" name="contraseña" required></div>
+          <div><label>Nombre</label><input type="text" name="nombre" required></div>
+          <div><label>Apellido</label><input type="text" name="apellido" required></div>
+          <div><label>Correo</label><input type="email" name="correo"></div>
+          <div><label>Teléfono</label><input type="text" name="numero_telefono"></div>
+          <div><label>Disciplina</label>
+            <select name="disciplina">
+              <option value="ski">Ski</option>
+              <option value="snow">Snow</option>
+              <option value="ambos">Ambos</option>
+            </select>
+          </div>
+          <div><label>Nivel</label><input type="number" name="nivel_instructor" min="1" max="3"></div>
+          <div style="grid-column: 1 / -1;"><label>Idiomas</label><input type="text" name="idioma" placeholder="Ej: español, inglés"></div>
+        </div>
+        <div class="btns">
+          <button type="button" class="btn secondary" onclick="cerrarCrearInstructor()">Cancelar</button>
+          <button type="submit" class="btn">Guardar</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- MODAL: Eliminar instructor -->
+  <div id="modal-eliminar-inst" class="modal-backdrop">
+    <div class="modal">
+      <h3>Eliminar instructor</h3>
+      <p id="texto-eliminar-inst" style="margin:8px 0 12px;"></p>
+      <form id="form-eliminar-inst" method="post">
+        {% csrf_token %}
+        <input type="hidden" name="fecha" value="{{ fecha|date:'Y-m-d' }}">
+        <input type="hidden" name="solo_activos" value="{% if solo_activos %}1{% endif %}">
+        <div class="btns">
+          <button type="button" class="btn secondary" onclick="cerrarEliminarInstructor()">Cancelar</button>
+          <button type="submit" class="btn">Eliminar</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <script>
+    function abrirAsistencia() { document.getElementById('modal-asistencia').style.display = 'flex'; }
+    function cerrarAsistencia() { document.getElementById('modal-asistencia').style.display = 'none'; }
+    function abrirCrearInstructor() { document.getElementById('modal-crear-inst').style.display = 'flex'; }
+    function cerrarCrearInstructor() { document.getElementById('modal-crear-inst').style.display = 'none'; }
+    function abrirEliminarInstructor(rut, nombreCompleto) {
+      document.getElementById('modal-eliminar-inst').style.display = 'flex';
+      document.getElementById('texto-eliminar-inst').innerText =
+        `¿Seguro deseas eliminar a “${nombreCompleto}” (RUT ${rut})?`;
+      const form = document.getElementById('form-eliminar-inst');
+      form.action = `/director/instructores/eliminar/${rut}/`;
+    }
+    function cerrarEliminarInstructor() { document.getElementById('modal-eliminar-inst').style.display = 'none'; }
+
+    function getCookie(name) {
+      let cookieValue = null;
+      if (document.cookie && document.cookie !== '') {
+        const cookies = document.cookie.split(';');
+        for (let i = 0; i < cookies.length; i++) {
+          const cookie = cookies[i].trim();
+          if (cookie.substring(0, name.length + 1) === (name + '=')) {
+            cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+            break;
+          }
+        }
+      }
+      return cookieValue;
+    }
+    const csrftoken = getCookie('csrftoken');
+
+    document.getElementById('form-asistencia').addEventListener('submit', async function (e) {
+      e.preventDefault();
+      const form = e.target;
+      const formData = new FormData(form);
+      try {
+        const resp = await fetch("{% url 'director_asistencia' %}", {
+          method: "POST",
+          headers: { 'X-CSRFToken': csrftoken },
+          body: formData
+        });
+        const data = await resp.json();
+        if (data.ok) {
+          cerrarAsistencia();
+          window.location.reload();
+        } else { alert("No se pudo guardar la asistencia."); }
+      } catch (err) { console.error(err); alert("Error al guardar la asistencia."); }
+    });
+  </script>
+
+</body>
+</html>

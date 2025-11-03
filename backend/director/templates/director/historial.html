@@ -1,0 +1,27 @@
+<h2>Historial de Clases</h2>
+
+<form method="get">
+  Desde: <input type="date" name="desde">
+  Hasta: <input type="date" name="hasta">
+  Instructor:
+  <select name="instructor">
+    <option value="">Todos</option>
+    {% for inst in instructores %}
+      <option value="{{ inst.rut_usuario }}">{{ inst.nombre }} {{ inst.apellido }}</option>
+    {% endfor %}
+  </select>
+  <button type="submit">Filtrar</button>
+</form>
+
+<table border="1" cellpadding="4">
+  <tr><th>Instructor</th><th>Fecha</th><th>Inicio</th><th>Fin</th><th>Duración</th></tr>
+  {% for c in clases %}
+  <tr>
+    <td>{{ c.rut_usuario.nombre }} {{ c.rut_usuario.apellido }}</td>
+    <td>{{ c.hora_inicio|date:"Y-m-d" }}</td>
+    <td>{{ c.hora_inicio|time:"H:i" }}</td>
+    <td>{{ c.hora_fin|time:"H:i" }}</td>
+    <td>{{ c.duracion }} min</td>
+  </tr>
+  {% endfor %}
+</table>
