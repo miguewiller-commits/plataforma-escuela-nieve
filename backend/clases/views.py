@@ -75,19 +75,25 @@ def clases_del_dia(request):
 
     filas_tabla = []
     for inst in instructores:
+        celdas = []
+        for slot in HORAS:
+            celdas.append({
+                "hora": slot,
+                "clase": horario[inst.rut_usuario][slot],
+        })
         filas_tabla.append({
             "instructor": inst,
             "activo": True,  # ya están filtrados por activos
-            "celdas": [horario[inst.rut_usuario][slot] for slot in HORAS],
+            "celdas": celdas,
         })
 
-    context = {
-        "fecha": fecha,
-        "horas": HORAS,
-        "filas_tabla": filas_tabla,
-        "error_crear": request.session.pop("error_crear", None),
-    }
-    return render(request, "clases/clases_del_dia.html", context)
+        context = {
+            "fecha": fecha,
+            "horas": HORAS,
+            "filas_tabla": filas_tabla,
+            "error_crear": request.session.pop("error_crear", None),
+        }
+        return render(request, "clases/clases_del_dia.html", context)
 
 
 def _render_error(request, msg, fecha=None):

@@ -26,12 +26,21 @@
     .btn:hover { filter: brightness(0.95); }
 
     .badge { padding: 2px 8px; border-radius: 999px; font-size: 12px; }
-    .badge-ok { background: #e7f7ef; color: #0d7a49; border: 1px solid #bde7d1; }
-    .badge-off { background: #fdeaea; color: #9b1c1c; border: 1px solid #f5c3c3; }
+    .badge-ok  { background:#e7f7ef; color:#0d7a49; border:1px solid #bde7d1; }
+    .badge-off { background:#fdeaea; color:#9b1c1c; border:1px solid #f5c3c3; }
 
-    table { width: 100%; border-collapse: collapse; font-size: 12px; }
-    th, td { border: 1px solid #bbb; text-align: center; padding: 4px; }
-    th { background: #f4f4f4; position: sticky; top: 0; }
+    table { border-collapse:collapse; width:100%; font-size:12px; }
+    th, td { border:1px solid #bbb; text-align:center; padding:4px; }
+    th { background:#f4f4f4; position:sticky; top:0; }
+    .inst-col { width:220px; text-align:left; background:#fafafa; padding: 4px;  }
+    .inst-nombre { font-weight:600; display:flex; align-items:center; gap:6px; }
+    .inst-meta { font-size:11px; color:#666; }
+    .badge { padding:2px 8px; border-radius:999px; font-size:12px; }
+    .badge-ok { background:#e7f7ef; color:#0d7a49; border:1px solid #bde7d1; }
+    td {
+      position: relative;
+      padding: 0;        /* elimina padding para que el bloque plano toque los bordes */
+}
 
     .inst-col { width: 250px; text-align: left; background: #fafafa; }
     .inst-nombre { font-weight: 600; display:flex; align-items:center; gap:6px; }
@@ -39,17 +48,40 @@
     .fila-inactiva .inst-col { background: #f9f0f0; }
     .fila-inactiva td { opacity: 0.55; }
 
+    /* Caja clase (primer bloque) */
+    /* Caja de clase (primer bloque) */
     .clase-box {
-      text-align: left;
-      background: #eef6ff; border: 1px solid #cfe5ff;
-      padding: 6px; border-radius: 6px; font-size: 11px; line-height: 1.2;
+      text-align:left;
+      background:#eef6ff;
+      border:1px solid #cfe5ff;
+      padding:6px;
+      border-radius:6px;
+      font-size:11px;
+      line-height:1.2;
+      min-height:48px;
     }
-    .disc { font-weight: 600; }
-    .hora { font-size: 11px; color: #333; }
-    .empty { color: #bbb; }
+    .disc { font-weight:600; }
+    .hora-rango { font-size:11px; color:#333; }
+    .empty { color:#bbb; }
 
     .summary { margin-bottom: 8px; color: #444; }
     .grid-wrap { overflow: auto; border: 1px solid #ddd; border-radius: 8px; padding-bottom: 1px; }
+
+    /* Colores por nivel */
+    .nivel-1 { background:#e6ffec; }
+    .nivel-2 { background:#dcdbff; }
+    .nivel-3 { background:#ffd9d9; }
+
+    /* Bloques planos (continuación) */
+    .clase-box.plano {
+      position: absolute;
+      inset: 0;            /* = top:0; right:0; bottom:0; left:0 */
+      margin: 0;
+      padding: 0;
+      border-radius: 1;
+      border-width: 1;     /* sin borde, solo color de fondo */
+      box-sizing: border-box;
+    }
 
     /* --- Modales (asistencia / crear / eliminar) --- */
     .modal-backdrop {
@@ -120,6 +152,8 @@
 
       {% for fila in filas_tabla %}
         <tr class="{% if not fila.activo %}fila-inactiva{% endif %}">
+
+          <!-- Columna instructor -->
           <td class="inst-col">
             <div class="inst-nombre">
               {{ fila.instructor.apellido }}, {{ fila.instructor.nombre }}
@@ -143,16 +177,28 @@
             </div>
           </td>
 
+          <!-- Celdas de horario -->
           {% for clase in fila.celdas %}
             <td>
               {% if clase %}
-                <div class="clase-box">
-                  <div class="disc">{{ clase.disciplina_clase|upper }} (N{{ clase.nivel_clase }})</div>
-                  <div class="hora">{{ clase.hora_inicio|time:"H:i" }}–{{ clase.hora_fin|time:"H:i" }}</div>
-                  <div>{{ clase.nombre_titular }}</div>
-                  <div>Tel: {{ clase.titular_telefono }}</div>
-                  <div>{{ clase.cantidad_alumnos }} alumno(s)</div>
-                </div>
+                {% with nivel=clase.nivel_clase %}
+                  {% ifchanged clase.id_clase %}
+                    <!-- PRIMER bloque de la clase: muestra info -->
+                    <div class="clase-box
+                      {% if nivel == 1 %}nivel-1{% elif nivel == 2 %}nivel-2{% elif nivel == 3 %}nivel-3{% endif %}">
+                      <div class="disc">{{ clase.disciplina_clase|upper }} (N{{ clase.nivel_clase }})</div>
+                      <div class="hora">{{ clase.hora_inicio|time:"H:i" }}–{{ clase.hora_fin|time:"H:i" }}</div>
+                      <div>{{ clase.nombre_titular }}</div>
+                      <div>Tel: {{ clase.titular_telefono }}</div>
+                      <div>{{ clase.cantidad_alumnos }} alumno(s)</div>
+                    </div>
+                  {% else %}
+                    <!-- Bloques siguientes: sólo color plano -->
+                    <div class="clase-box plano
+                      {% if nivel == 1 %}nivel-1{% elif nivel == 2 %}nivel-2{% elif nivel == 3 %}nivel-3{% endif %}">
+                    </div>
+                  {% endifchanged %}
+                {% endwith %}
               {% else %}
                 <div class="empty">·</div>
               {% endif %}
@@ -211,7 +257,8 @@
           <div><label>Apellido</label><input type="text" name="apellido" required></div>
           <div><label>Correo</label><input type="email" name="correo"></div>
           <div><label>Teléfono</label><input type="text" name="numero_telefono"></div>
-          <div><label>Disciplina</label>
+          <div>
+            <label>Disciplina</label>
             <select name="disciplina">
               <option value="ski">Ski</option>
               <option value="snow">Snow</option>
@@ -219,7 +266,9 @@
             </select>
           </div>
           <div><label>Nivel</label><input type="number" name="nivel_instructor" min="1" max="3"></div>
-          <div style="grid-column: 1 / -1;"><label>Idiomas</label><input type="text" name="idioma" placeholder="Ej: español, inglés"></div>
+          <div style="grid-column: 1 / -1;">
+            <label>Idiomas</label><input type="text" name="idioma" placeholder="Ej: español, inglés">
+          </div>
         </div>
         <div class="btns">
           <button type="button" class="btn secondary" onclick="cerrarCrearInstructor()">Cancelar</button>

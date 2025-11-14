@@ -10,44 +10,158 @@
     /* Toolbar */
     .toolbar { display:flex; gap:8px; align-items:center; margin-bottom:10px; flex-wrap:wrap; }
     .toolbar .spacer { flex:1; }
-    .btn { border:1px solid #0e62f0; background:#0e62f0; color:#fff; padding:6px 10px; border-radius:6px; font-size:13px; text-decoration:none; cursor:pointer; }
+    .btn {
+      border:1px solid #0e62f0;
+      background:#0e62f0;
+      color:#fff;
+      padding:6px 10px;
+      border-radius:6px;
+      font-size:13px;
+      text-decoration:none;
+      cursor:pointer;
+    }
     .btn.secondary { background:#fff; color:#0e62f0; }
-    .btn.icon { width:30px; height:30px; display:inline-flex; align-items:center; justify-content:center; padding:0; }
+    .btn.icon {
+      width:30px;
+      height:30px;
+      display:inline-flex;
+      align-items:center;
+      justify-content:center;
+      padding:0;
+    }
     .btn:hover { filter:brightness(0.95); }
 
     /* Tabla */
     table { border-collapse:collapse; width:100%; font-size:12px; }
     th, td { border:1px solid #bbb; text-align:center; padding:4px; }
     th { background:#f4f4f4; position:sticky; top:0; }
-    .inst-col { width:220px; text-align:left; background:#fafafa; }
+    .inst-col { width:220px; text-align:left; background:#fafafa; padding: 4px;  }
     .inst-nombre { font-weight:600; display:flex; align-items:center; gap:6px; }
     .inst-meta { font-size:11px; color:#666; }
     .badge { padding:2px 8px; border-radius:999px; font-size:12px; }
     .badge-ok { background:#e7f7ef; color:#0d7a49; border:1px solid #bde7d1; }
+    td {
+      position: relative;
+      padding: 0;        /* elimina padding para que el bloque plano toque los bordes */
+}
 
-    .clase-box { text-align:left; background:#eef6ff; border:1px solid #cfe5ff; padding:6px; border-radius:6px; font-size:11px; line-height:1.2; }
+    /* Caja de clase (primer bloque) */
+    .clase-box {
+      text-align:left;
+      background:#eef6ff;
+      border:1px solid #cfe5ff;
+      padding:6px;
+      border-radius:6px;
+      font-size:11px;
+      line-height:1.2;
+      min-height:48px;
+    }
     .disc { font-weight:600; }
     .hora-rango { font-size:11px; color:#333; }
     .empty { color:#bbb; }
 
-    .botonera-clase { margin-top:6px; display:flex; gap:4px; justify-content:flex-end; }
-    .btn-icon-edit { background:#007bff; color:#fff; border:none; border-radius:4px; width:28px; height:28px; font-size:14px; cursor:pointer; }
-    .btn-icon-delete { background:#dc3545; color:#fff; border:none; border-radius:4px; width:28px; height:28px; font-size:14px; cursor:pointer; }
+    .botonera-clase {
+      margin-top:6px;
+      display:flex;
+      gap:4px;
+      justify-content:flex-end;
+    }
+    .btn-icon-edit,
+    .btn-icon-delete {
+      border:none;
+      border-radius:4px;
+      width:28px;
+      height:28px;
+      font-size:14px;
+      cursor:pointer;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+    }
+    .btn-icon-edit  { background:#007bff; color:#fff; }
+    .btn-icon-delete{ background:#dc3545; color:#fff; }
 
     .tabla-wrapper { overflow:auto; border:1px solid #ddd; border-radius:8px; padding-bottom:1px; }
 
+    /* Niveles (colores) */
+    .nivel-1 { background:#d6fcdf; }
+    .nivel-2 { background:#cdcefc; }
+    .nivel-3 { background:#fccfcf; }
+
+    /* Bloques planos (continuación de la clase) */
+/* Bloques planos (continuación de la clase: llenan toda la celda) */
+    .clase-box.plano {
+      position: absolute;
+      inset: 0;            /* = top:0; right:0; bottom:0; left:0 */
+      margin: 0;
+      padding: 0;
+      border-radius: 1;
+      border-width: 1;     /* sin borde, solo color de fondo */
+      box-sizing: border-box;
+    }
+
+
+
     /* Modales */
-    .modal-backdrop { position:fixed; inset:0; background:rgba(0,0,0,0.4); display:none; align-items:center; justify-content:center; z-index:9999; }
-    .modal { background:#fff; border-radius:8px; min-width:280px; max-width:380px; padding:16px; box-shadow:0 20px 50px rgba(0,0,0,0.45); font-size:13px; }
+    .modal-backdrop {
+      position:fixed;
+      inset:0;
+      background:rgba(0,0,0,0.4);
+      display:none;
+      align-items:center;
+      justify-content:center;
+      z-index:9999;
+    }
+    .modal {
+      background:#fff;
+      border-radius:8px;
+      min-width:280px;
+      max-width:380px;
+      padding:16px;
+      box-shadow:0 20px 50px rgba(0,0,0,0.45);
+      font-size:13px;
+    }
     .modal h2 { margin:0 0 8px 0; font-size:14px; font-weight:600; }
     .modal label { display:block; font-weight:600; font-size:12px; margin-top:8px; }
-    .modal input, .modal select { width:100%; padding:6px; font-size:13px; margin-top:2px; box-sizing:border-box; }
+    .modal input, .modal select {
+      width:100%;
+      padding:6px;
+      font-size:13px;
+      margin-top:2px;
+      box-sizing:border-box;
+    }
     .modal-row { display:flex; gap:8px; }
     .modal-row > div { flex:1; }
-    .modal-buttons { display:flex; justify-content:flex-end; gap:8px; margin-top:16px; }
-    .btn-cancel { background:#bbb; color:#000; border:none; border-radius:6px; padding:6px 10px; cursor:pointer; }
-    .btn-edit { background:#007bff; color:#fff; border:none; border-radius:6px; padding:6px 10px; cursor:pointer; }
-    .btn-save { background:#2ecc71; color:#fff; border:none; border-radius:6px; padding:6px 10px; cursor:pointer; }
+    .modal-buttons {
+      display:flex;
+      justify-content:flex-end;
+      gap:8px;
+      margin-top:16px;
+    }
+    .btn-cancel {
+      background:#bbb;
+      color:#000;
+      border:none;
+      border-radius:6px;
+      padding:6px 10px;
+      cursor:pointer;
+    }
+    .btn-edit {
+      background:#007bff;
+      color:#fff;
+      border:none;
+      border-radius:6px;
+      padding:6px 10px;
+      cursor:pointer;
+    }
+    .btn-save {
+      background:#2ecc71;
+      color:#fff;
+      border:none;
+      border-radius:6px;
+      padding:6px 10px;
+      cursor:pointer;
+    }
   </style>
 </head>
 <body>
@@ -100,44 +214,54 @@
           </div>
         </td>
 
-        {% for clase in fila.celdas %}
-        <td>
-          {% if clase %}
-          <div class="clase-box">
-            <div class="disc">{{ clase.disciplina_clase|upper }} (N{{ clase.nivel_clase }})</div>
-            <div class="hora-rango">{{ clase.hora_inicio|time:"H:i" }} – {{ clase.hora_fin|time:"H:i" }}</div>
-            <div>{{ clase.nombre_titular }}</div>
-            <div>Tel: {{ clase.titular_telefono }}</div>
-            <div>{{ clase.cantidad_alumnos }} alumno(s)</div>
+        {% for celda in fila.celdas %}
+          {% with clase=celda.clase %}
+          <td>
+            {% if clase %}
+              {% with inicio=clase.hora_inicio|time:"H:i" %}
+                {% if celda.hora == inicio %}
+                  <!-- Primer bloque: tarjeta completa -->
+                  <div class="clase-box nivel-{{ clase.nivel_clase }}">
+                    <div class="disc">{{ clase.disciplina_clase|upper }} (N{{ clase.nivel_clase }})</div>
+                    <div class="hora-rango">{{ clase.hora_inicio|time:"H:i" }} – {{ clase.hora_fin|time:"H:i" }}</div>
+                    <div>{{ clase.nombre_titular }}</div>
+                    <div>Tel: {{ clase.titular_telefono }}</div>
+                    <div>{{ clase.cantidad_alumnos }} alumno(s)</div>
 
-            <div class="botonera-clase">
-              <button
-                class="btn-icon-edit"
-                title="Modificar"
-                data-id="{{ clase.id_clase }}"
-                data-nombre="{{ clase.nombre_titular|escapejs }}"
-                data-telefono="{{ clase.titular_telefono|escapejs }}"
-                data-nivel="{{ clase.nivel_clase }}"
-                data-alumnos="{{ clase.cantidad_alumnos }}"
-                data-duracion="{{ clase.duracion }}"
-                data-instructor="{{ clase.rut_usuario_id }}"
-                data-disciplina="{{ clase.disciplina_clase|lower }}"
-                onclick="abrirEditarDesdeBoton(this)"
-              >✏️</button>
+                    <div class="botonera-clase">
+                      <button
+                        class="btn-icon-edit"
+                        title="Modificar"
+                        data-id="{{ clase.id_clase }}"
+                        data-nombre="{{ clase.nombre_titular|escapejs }}"
+                        data-telefono="{{ clase.titular_telefono|escapejs }}"
+                        data-nivel="{{ clase.nivel_clase }}"
+                        data-alumnos="{{ clase.cantidad_alumnos }}"
+                        data-duracion="{{ clase.duracion }}"
+                        data-instructor="{{ clase.rut_usuario_id }}"
+                        data-disciplina="{{ clase.disciplina_clase|lower }}"
+                        onclick="abrirEditarDesdeBoton(this)"
+                      >✏️</button>
 
-              <button
-                class="btn-icon-delete"
-                title="Cancelar clase"
-                data-id="{{ clase.id_clase }}"
-                data-nombre="{{ clase.nombre_titular|escapejs }}"
-                onclick="abrirCancelarDesdeBoton(this)"
-              >🗑️</button>
-            </div>
-          </div>
-          {% else %}
-          <div class="empty">·</div>
-          {% endif %}
-        </td>
+                      <button
+                        class="btn-icon-delete"
+                        title="Cancelar clase"
+                        data-id="{{ clase.id_clase }}"
+                        data-nombre="{{ clase.nombre_titular|escapejs }}"
+                        onclick="abrirCancelarDesdeBoton(this)"
+                      >🗑️</button>
+                    </div>
+                  </div>
+                {% else %}
+                  <!-- Bloques siguientes: solo color plano según nivel -->
+                  <div class="clase-box plano nivel-{{ clase.nivel_clase }}">&nbsp;</div>
+                {% endif %}
+              {% endwith %}
+            {% else %}
+              <div class="empty">·</div>
+            {% endif %}
+          </td>
+          {% endwith %}
         {% endfor %}
       </tr>
       {% endfor %}
@@ -150,6 +274,8 @@
       <h2>Nueva clase</h2>
       <form method="POST" action="{% url 'crear_clase' %}">
         {% csrf_token %}
+        <!-- fecha que ve boletería, para que la clase se cree ese día -->
+        <input type="hidden" name="fecha" value="{{ fecha|date:'Y-m-d' }}">
 
         <label>Disciplina</label>
         <select name="disciplina_clase" id="nueva-disciplina" required onchange="filtrarInstructoresCrear()">
@@ -172,7 +298,7 @@
 
         <div class="modal-row">
           <div>
-            <label>Hora inicio (hoy)</label>
+            <label>Hora inicio (día seleccionado)</label>
             <input type="time" name="hora_sola" required>
           </div>
           <div>
