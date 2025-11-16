@@ -10,6 +10,7 @@ from director.models import EstadoInstructor  # activos del director
 from backend_project.utils import centro_del_sesion
 from django.db.models import Sum
 from django.http import HttpResponse
+from urllib.parse import urlencode 
 
 
 def _parse_fecha(value: str):
@@ -183,61 +184,49 @@ def crear_clase(request):
     return redirect(f"{reverse('clases_del_dia')}?fecha={dia_obj.strftime('%Y-%m-%d')}")
 
 
+from django.urls import reverse
+
 def editar_clase(request, id_clase):
-    clase = get_object_or_404(Clase, id_clase=id_clase)
-    if request.method != "POST":
-        return redirect(f"{reverse('clases_del_dia')}?fecha={clase.hora_inicio.date().strftime('%Y-%m-%d')}")
+    clase = get_object_or_404(Clase, pk=id_clase)
 
-    nuevo_nombre = request.POST.get("nombre_titular", clase.nombre_titular)
-    nuevo_tel = request.POST.get("titular_telefono", clase.titular_telefono)
-    nuevo_nivel = int(request.POST.get("nivel_clase", clase.nivel_clase))
-    nuevo_alumnos = int(request.POST.get("cantidad_alumnos", clase.cantidad_alumnos))
-    nueva_duracion = int(request.POST.get("duracion", clase.duracion))
-    nueva_disciplina = request.POST.get("disciplina_clase", clase.disciplina_clase)
-    nuevo_instructor = request.POST.get("rut_usuario", clase.rut_usuario_id)
+    if request.method == 'POST':
+        clase.disciplina_clase = request.POST.get('disciplina_clase')
+        clase.nombre_titular = request.POST.get('nombre_titular')
+        clase.titular_telefono = request.POST.get('titular_telefono')
+        clase.nivel_clase = request.POST.get('nivel_clase')
+        clase.cantidad_alumnos = request.POST.get('cantidad_alumnos')
+        clase.duracion = request.POST.get('duracion')
+        clase.rut_usuario_id = request.POST.get('rut_usuario')
+        clase.save()
 
-    fecha_clase = clase.hora_inicio.date()
-    nuevo_hora_inicio = clase.hora_inicio
-    nuevo_hora_fin = nuevo_hora_inicio + timedelta(minutes=nueva_duracion)
+        origen = request.POST.get('origen')
 
-    choque = (
-        Clase.objects
-        .filter(
-            rut_usuario_id=nuevo_instructor,
-            hora_inicio__lt=nuevo_hora_fin,
-            hora_fin__gt=nuevo_hora_inicio,
-        )
-        .exclude(pk=clase.pk)
-        .exists()
-    )
-    if choque:
-        return _render_error(request, "Ese instructor ya tiene una clase en ese horario.", fecha_clase)
+        if origen == 'director':
+            return redirect(_redir_director_desde_post(request))
+        else:
+            return redirect('clases_del_dia')
 
-    if not EstadoInstructor.objects.filter(
-        fecha=fecha_clase, instructor__rut_usuario=nuevo_instructor, activo=True
-    ).exists():
-        return _render_error(request, "El instructor seleccionado no está activo ese día.", fecha_clase)
+    # si manejas GET aquí, lo dejas como estaba
+    return render(request, "clases/editar_clase.html", {"clase": clase})
 
-    clase.nombre_titular = nuevo_nombre
-    clase.titular_telefono = nuevo_tel
-    clase.nivel_clase = nuevo_nivel
-    clase.cantidad_alumnos = nuevo_alumnos
-    clase.duracion = nueva_duracion
-    clase.hora_fin = nuevo_hora_fin
-    clase.disciplina_clase = nueva_disciplina
-    clase.rut_usuario_id = nuevo_instructor
-    clase.save()
 
-    return redirect(f"{reverse('clases_del_dia')}?fecha={fecha_clase.strftime('%Y-%m-%d')}")
 
 
 
 def eliminar_clase(request, id_clase):
-    clase = get_object_or_404(Clase, id_clase=id_clase)
-    fecha = clase.hora_inicio.date()
-    if request.method == "POST":
+    clase = get_object_or_404(Clase, pk=id_clase)
+
+    if request.method == 'POST':
         clase.delete()
-    return redirect(f"{reverse('clases_del_dia')}?fecha={fecha.strftime('%Y-%m-%d')}")
+
+        origen = request.POST.get('origen')
+
+        if origen == 'director':
+            return redirect(_redir_director_desde_post(request))
+        else:
+            return redirect('clases_del_dia')
+
+
 
 
 def director_reportes(request):
@@ -350,3 +339,22 @@ def director_reportes(request):
         "total_general_horas": total_general_horas,
     }
     return render(request, "director/reportes.html", context)
+
+
+
+def _redir_director_desde_post(request):
+    fecha = request.POST.get("fecha")
+    solo_activos = request.POST.get("solo_activos")
+
+    base_url = reverse("director_dashboard")
+    params = {}
+
+    if fecha:
+        params["fecha"] = fecha
+
+    if solo_activos in ("1", 1, True, "true", "True"):
+        params["solo_activos"] = "1"
+
+    if params:
+        return f"{base_url}?{urlencode(params)}"
+    return base_url

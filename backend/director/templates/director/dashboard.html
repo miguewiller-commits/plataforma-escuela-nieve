@@ -120,6 +120,7 @@
       color: #444;
       font-size: 13px;
     }
+    
 
     /* ====== TABLA HORARIO ====== */
     .grid-wrap {
@@ -587,7 +588,12 @@
         <form method="POST" id="form-editar-clase">
           {% csrf_token %}
           <input type="hidden" id="edit-id-clase">
-          <input type="hidden" name="origen" value="director">  <!-- para redirigir a director -->
+          <input type="hidden" name="origen" value="director">
+
+          <!-- 🔹 preserva el día y filtro actuales -->
+          <input type="hidden" name="fecha" value="{{ fecha|date:'Y-m-d' }}">
+          <input type="hidden" name="solo_activos" value="{% if solo_activos %}1{% endif %}">
+
 
           <label>Disciplina</label>
           <select name="disciplina_clase" id="edit-disciplina" required>
