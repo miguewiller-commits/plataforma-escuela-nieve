@@ -8,6 +8,8 @@ from usuarios.models import Usuario
 from .models import Clase
 from director.models import EstadoInstructor  # activos del director
 from backend_project.utils import centro_del_sesion
+from django.db.models import Sum
+from django.http import HttpResponse
 
 
 def _parse_fecha(value: str):
@@ -19,29 +21,35 @@ def _parse_fecha(value: str):
 
 def clases_del_dia(request):
     """
-    Boletería: muestra solo los instructores ACTIVOS en la fecha seleccionada.
-    Sin checkbox de 'solo activos'. Navegación de días con botones.
+    Boletería: muestra solo los instructores ACTIVOS en la fecha seleccionada
+    y del mismo centro de ski que la boletería.
     """
     # 1) Fecha (por defecto: local)
     fecha_str = request.GET.get("fecha")
     fecha = _parse_fecha(fecha_str) if fecha_str else localdate()
 
-    # 2) Instructores activos ese día (si no hay estado cargado, no muestra nadie)
+    # 2) Centro de la boletería (guardado en la sesión)
+    centro = centro_del_sesion(request)  # puede ser None
+
+    # 3) Instructores activos ese día (si no hay estado cargado, no muestra nadie)
     activos_ids = list(
         EstadoInstructor.objects
         .filter(fecha=fecha, activo=True)
         .values_list("instructor__rut_usuario", flat=True)
     )
 
-    instructores = (
-        Usuario.objects.filter(
-            tipo_de_usuario__tipo_de_usuario__iexact="Instructor",
-            rut_usuario__in=activos_ids if activos_ids else ["__NONE__"],
-        )
-        .order_by("apellido", "nombre")
+    # 4) Instructores del centro Y activos
+    instructores_qs = Usuario.objects.filter(
+        tipo_de_usuario__tipo_de_usuario__iexact="Instructor",
+        rut_usuario__in=activos_ids if activos_ids else ["__NONE__"],
     )
+    # si hay centro en sesión, filtramos por él
+    if centro is not None:
+        instructores_qs = instructores_qs.filter(id_centro=centro)
 
-    # 3) Slots 30 min (09-17)
+    instructores = instructores_qs.order_by("apellido", "nombre")
+
+    # 5) Slots 30 min (09-17)
     HORAS = []
     start_dt = datetime.strptime(f"{fecha} 09:00", "%Y-%m-%d %H:%M")
     end_dt   = datetime.strptime(f"{fecha} 17:00", "%Y-%m-%d %H:%M")
@@ -50,21 +58,21 @@ def clases_del_dia(request):
         HORAS.append(cur.strftime("%H:%M"))
         cur += timedelta(minutes=30)
 
-    # 4) Clases del día
+    # 6) Clases del día
     clases_hoy = (
         Clase.objects.filter(hora_inicio__date=fecha)
         .select_related("rut_usuario")
         .order_by("hora_inicio")
     )
 
-    # 5) Grilla
+    # 7) Grilla base
     horario = {inst.rut_usuario: {slot: None for slot in HORAS} for inst in instructores}
     tz = get_current_timezone()
 
     for clase in clases_hoy:
         inst_id = clase.rut_usuario.rut_usuario
         if inst_id not in horario:
-            continue  # si el inst no está activo/no se muestra
+            continue  # si el inst no está activo / no es de este centro, lo ignoramos
         inicio, fin = clase.hora_inicio, clase.hora_fin
         for slot_str in HORAS:
             slot_naive = datetime.strptime(f"{fecha} {slot_str}", "%Y-%m-%d %H:%M")
@@ -73,6 +81,7 @@ def clases_del_dia(request):
             if (slot_inicio < fin) and (slot_fin > inicio):
                 horario[inst_id][slot_str] = clase
 
+    # 8) Armar filas_tabla (OJO: el return va FUERA del for)
     filas_tabla = []
     for inst in instructores:
         celdas = []
@@ -80,20 +89,22 @@ def clases_del_dia(request):
             celdas.append({
                 "hora": slot,
                 "clase": horario[inst.rut_usuario][slot],
-        })
+            })
         filas_tabla.append({
             "instructor": inst,
             "activo": True,  # ya están filtrados por activos
             "celdas": celdas,
         })
 
-        context = {
-            "fecha": fecha,
-            "horas": HORAS,
-            "filas_tabla": filas_tabla,
-            "error_crear": request.session.pop("error_crear", None),
-        }
-        return render(request, "clases/clases_del_dia.html", context)
+    # 9) Contexto y render
+    context = {
+        "fecha": fecha,
+        "horas": HORAS,
+        "filas_tabla": filas_tabla,
+        "error_crear": request.session.pop("error_crear", None),
+    }
+    return render(request, "clases/clases_del_dia.html", context)
+
 
 
 def _render_error(request, msg, fecha=None):
@@ -182,6 +193,7 @@ def editar_clase(request, id_clase):
     nuevo_nivel = int(request.POST.get("nivel_clase", clase.nivel_clase))
     nuevo_alumnos = int(request.POST.get("cantidad_alumnos", clase.cantidad_alumnos))
     nueva_duracion = int(request.POST.get("duracion", clase.duracion))
+    nueva_disciplina = request.POST.get("disciplina_clase", clase.disciplina_clase)
     nuevo_instructor = request.POST.get("rut_usuario", clase.rut_usuario_id)
 
     fecha_clase = clase.hora_inicio.date()
@@ -212,10 +224,12 @@ def editar_clase(request, id_clase):
     clase.cantidad_alumnos = nuevo_alumnos
     clase.duracion = nueva_duracion
     clase.hora_fin = nuevo_hora_fin
+    clase.disciplina_clase = nueva_disciplina
     clase.rut_usuario_id = nuevo_instructor
     clase.save()
 
     return redirect(f"{reverse('clases_del_dia')}?fecha={fecha_clase.strftime('%Y-%m-%d')}")
+
 
 
 def eliminar_clase(request, id_clase):
@@ -224,3 +238,115 @@ def eliminar_clase(request, id_clase):
     if request.method == "POST":
         clase.delete()
     return redirect(f"{reverse('clases_del_dia')}?fecha={fecha.strftime('%Y-%m-%d')}")
+
+
+def director_reportes(request):
+    # ---- 1) Leer filtros del GET ----
+    instructor_id = request.GET.get("instructor")  # rut_usuario o vacío
+    disciplina_flt = request.GET.get("disciplina")  # 'ski', 'snow' o ''
+    desde_str = request.GET.get("desde")
+    hasta_str = request.GET.get("hasta")
+
+    hoy = localdate()
+
+    # Parsear fechas con valores por defecto
+    def _parse_fecha(value, default):
+        try:
+            return datetime.strptime(value, "%Y-%m-%d").date()
+        except Exception:
+            return default
+
+    fecha_hasta = _parse_fecha(hasta_str, hoy)
+    # por defecto, desde el primer día del mes actual
+    fecha_desde = _parse_fecha(desde_str, hoy.replace(day=1))
+
+    # ---- 2) Query base de clases en ese rango ----
+    clases_qs = Clase.objects.filter(
+        hora_inicio__date__gte=fecha_desde,
+        hora_inicio__date__lte=fecha_hasta,
+    )
+
+    if disciplina_flt:
+        clases_qs = clases_qs.filter(disciplina_clase=disciplina_flt)
+
+    # ---- 3) Detalle de un instructor específico (si se eligió) ----
+    instructor_seleccionado = None
+    clases_instructor = []
+    total_horas_instructor = 0
+
+    if instructor_id:
+        clases_instructor = (
+            clases_qs
+            .filter(rut_usuario_id=instructor_id)
+            .order_by("hora_inicio")
+        )
+        instructor_seleccionado = (
+            Usuario.objects.filter(rut_usuario=instructor_id).first()
+        )
+
+        total_min = clases_instructor.aggregate(
+            total=Sum("duracion")
+        )["total"] or 0
+        total_horas_instructor = round(total_min / 60, 2)
+
+    # ---- 4) Resumen por instructor (todas las clases del período) ----
+    resumen_raw = (
+        clases_qs
+        .values("rut_usuario_id", "rut_usuario__nombre", "rut_usuario__apellido")
+        .annotate(total_min=Sum("duracion"))
+        .order_by("rut_usuario__apellido", "rut_usuario__nombre")
+    )
+
+    resumen_por_instructor = [
+        {
+            "rut": r["rut_usuario_id"],
+            "nombre": r["rut_usuario__nombre"],
+            "apellido": r["rut_usuario__apellido"],
+            "horas": round((r["total_min"] or 0) / 60, 2),
+        }
+        for r in resumen_raw
+    ]
+
+    total_general_horas = sum(item["horas"] for item in resumen_por_instructor)
+
+    # ---- 5) Lista de instructores para el <select> ----
+    instructores = (
+        Usuario.objects
+        .filter(tipo_de_usuario__tipo_de_usuario__iexact="Instructor")
+        .order_by("apellido", "nombre")
+    )
+
+    # ---- 6) Exportar CSV si se pide ----
+    if request.GET.get("export") == "resumen":
+        # armamos un CSV simple: Instructor, Horas
+        import csv
+        response = HttpResponse(content_type="text/csv")
+        filename = f"resumen_instructores_{fecha_desde}_{fecha_hasta}.csv"
+        response["Content-Disposition"] = f'attachment; filename="{filename}"'
+
+        writer = csv.writer(response)
+        writer.writerow(["Apellido", "Nombre", "Horas en período"])
+        for r in resumen_por_instructor:
+            writer.writerow([r["apellido"], r["nombre"], r["horas"]])
+        writer.writerow([])
+        writer.writerow(["TOTAL GENERAL HORAS", "", total_general_horas])
+
+        return response
+
+    # ---- 7) Contexto para el template ----
+    context = {
+        "instructores": instructores,
+        "instructor_id": instructor_id,
+        "instructor_seleccionado": instructor_seleccionado,
+
+        "fecha_desde": fecha_desde,
+        "fecha_hasta": fecha_hasta,
+        "disciplina_flt": disciplina_flt,
+
+        "clases_instructor": clases_instructor,
+        "total_horas_instructor": total_horas_instructor,
+
+        "resumen_por_instructor": resumen_por_instructor,
+        "total_general_horas": total_general_horas,
+    }
+    return render(request, "director/reportes.html", context)

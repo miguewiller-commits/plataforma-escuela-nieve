@@ -1,0 +1,42 @@
+.header {
+    background: #ffffffdd;
+    backdrop-filter: blur(6px);
+    border-bottom: 1px solid #ddd;
+    padding: 12px 20px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.header-title {
+    font-size: 18px;
+    font-weight: 600;
+}
+
+.header-nav a {
+    margin: 0 10px;
+    text-decoration: none;
+    color: #0a4abf;
+    font-weight: 500;
+}
+
+.header-nav a:hover {
+    text-decoration: underline;
+}
+
+.header-user {
+    margin-right: 12px;
+    font-weight: 500;
+}
+
+.logout-btn {
+    padding: 6px 10px;
+    border-radius: 6px;
+    background: #dc3545;
+    color: #fff;
+    text-decoration: none;
+}
+
+.logout-btn:hover {
+    background: #b92333;
+}

@@ -1,16 +1,371 @@
-<h2>Reporte mensual ({{ mes }})</h2>
-<form method="get">
-  <input type="month" name="mes" value="{{ mes }}">
-  <button type="submit">Ver</button>
-</form>
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <title>Reportes de clases</title>
+  <style>
+    :root {
+      --accent: #0e62f0;
+      --accent-soft: #eef2ff;
+      --border-soft: #e5e7eb;
+      --text-main: #0f172a;
+      --text-muted: #6b7280;
+    }
 
-<table border="1" cellpadding="4">
-  <tr><th>Instructor</th><th>Horas totales</th><th>Clases dictadas</th></tr>
-  {% for fila in resumen %}
-  <tr>
-    <td>{{ fila.rut_usuario__nombre }} {{ fila.rut_usuario__apellido }}</td>
-    <td>{{ fila.horas_totales }} min</td>
-    <td>{{ fila.cantidad_clases }}</td>
-  </tr>
-  {% endfor %}
-</table>
+    /* ====== LAYOUT GENERAL ====== */
+    body {
+      margin: 0;
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Arial, sans-serif;
+      color: var(--text-main);
+      background:
+        radial-gradient(circle at 0 0, #1e40af22 0, transparent 45%),
+        radial-gradient(circle at 100% 100%, #0f766e22 0, transparent 55%),
+        #e5f0ff;
+    }
+
+    .page-shell {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 18px 24px 32px;
+      box-sizing: border-box;
+    }
+
+    .page-title {
+      margin: 6px 0 16px;
+      font-size: 20px;
+      font-weight: 600;
+      color: #0f172a;
+    }
+
+    /* ====== TOOLBAR / FILTROS ====== */
+    .toolbar {
+      display:flex;
+      flex-wrap:wrap;
+      gap:10px;
+      align-items:flex-end;
+      margin-bottom:18px;
+      padding:12px 14px;
+      border-radius:12px;
+      background: rgba(255,255,255,0.9);
+      border:1px solid var(--border-soft);
+      box-shadow:0 8px 22px rgba(15,23,42,0.10);
+    }
+    .toolbar .field {
+      display:flex;
+      flex-direction:column;
+      gap:2px;
+      font-size:12px;
+    }
+    .toolbar label {
+      font-weight:600;
+      color:#374151;
+    }
+    .toolbar select,
+    .toolbar input {
+      padding:6px 8px;
+      font-size:13px;
+      border-radius:6px;
+      border:1px solid #d1d5db;
+      min-width:170px;
+      background:#ffffff;
+    }
+    .toolbar select:focus,
+    .toolbar input:focus {
+      outline:none;
+      border-color:#2563eb;
+      box-shadow:0 0 0 1px rgba(37,99,235,0.25);
+    }
+
+    /* ====== BOTONES ====== */
+    .btn {
+      border:1px solid #2563eb;
+      background:#2563eb;
+      color:#fff;
+      padding:7px 12px;
+      border-radius:8px;
+      font-size:13px;
+      text-decoration:none;
+      cursor:pointer;
+      display:inline-flex;
+      align-items:center;
+      justify-content:center;
+      gap:4px;
+      transition: background .15s, box-shadow .15s, transform .1s;
+    }
+    .btn.secondary {
+      background:#e5e7eb;
+      border-color:#e5e7eb;
+      color:#111827;
+    }
+    .btn:hover {
+      filter:brightness(0.96);
+      box-shadow:0 6px 18px rgba(37,99,235,0.35);
+      transform: translateY(-1px);
+    }
+
+    /* ====== LAYOUT CONTENIDO ====== */
+    .layout {
+      display:grid;
+      grid-template-columns: minmax(0, 290px) minmax(0, 1fr);
+      gap:18px;
+      align-items:flex-start;
+    }
+    @media (max-width: 900px) {
+      .layout { grid-template-columns: 1fr; }
+    }
+
+    /* Tarjeta info instructor */
+    .card {
+      border:1px solid #e5e7eb;
+      border-radius:12px;
+      padding:14px 16px;
+      background:#f9fafb;
+      font-size:13px;
+      box-shadow:0 10px 26px rgba(15,23,42,0.10);
+    }
+    .card h2 {
+      margin:0 0 8px 0;
+      font-size:15px;
+    }
+    .badge-nivel {
+      display:inline-block;
+      font-size:11px;
+      padding:2px 6px;
+      border-radius:999px;
+      background:#e5e7eb;
+      margin-left:4px;
+    }
+    .muted { color:#6b7280; font-size:12px; }
+
+    /* Resumen horas */
+    .summary-box {
+      border-radius:12px;
+      background:#eff6ff;
+      padding:12px 14px;
+      margin-bottom:10px;
+      font-size:13px;
+      border:1px solid #bfdbfe;
+      box-shadow:0 6px 20px rgba(37,99,235,0.15);
+    }
+    .summary-box b { font-size:15px; }
+
+    /* Tabla de clases / resumen */
+    table {
+      border-collapse:collapse;
+      width:100%;
+      font-size:12px;
+      background:#ffffff;
+      border-radius:10px;
+      overflow:hidden;
+      box-shadow:0 8px 22px rgba(15,23,42,0.10);
+    }
+    th, td {
+      border:1px solid #e5e7eb;
+      text-align:left;
+      padding:6px 8px;
+    }
+    th {
+      background:#f3f4f6;
+      font-weight:600;
+    }
+    tr:nth-child(even) td { background:#f9fafb; }
+
+    .pill-ski {
+      display:inline-block;
+      padding:2px 6px;
+      border-radius:999px;
+      font-size:11px;
+      background:#ecfdf5;
+      color:#047857;
+      border:1px solid #bbf7d0;
+    }
+    .pill-snow {
+      display:inline-block;
+      padding:2px 6px;
+      border-radius:999px;
+      font-size:11px;
+      background:#eff6ff;
+      color:#1d4ed8;
+      border:1px solid #bfdbfe;
+    }
+  </style>
+</head>
+<body>
+  {% include 'includes/header.html' with titulo='Reportes de instructores' seccion='director' subseccion='reportes' %}
+
+  <div class="page-shell">
+    <h1 class="page-title">Reportes de instructores</h1>
+
+    <!-- FILTROS -->
+    <form method="get" class="toolbar">
+      <div class="field">
+        <label>Instructor</label>
+        <select name="inst">
+          <option value="">Seleccione un instructor…</option>
+          <option value="todos" {% if inst_id == 'todos' %}selected{% endif %}>
+            Todos los instructores
+          </option>
+          {% for inst in instructores %}
+            <option value="{{ inst.rut_usuario }}" {% if inst_id == inst.rut_usuario %}selected{% endif %}>
+              {{ inst.apellido }}, {{ inst.nombre }}
+            </option>
+          {% endfor %}
+        </select>
+      </div>
+
+      <div class="field">
+        <label>Desde</label>
+        <input type="date" name="desde" value="{{ desde|date:'Y-m-d' }}">
+      </div>
+      <div class="field">
+        <label>Hasta</label>
+        <input type="date" name="hasta" value="{{ hasta|date:'Y-m-d' }}">
+      </div>
+
+      <div class="field">
+        <label>&nbsp;</label>
+        <button type="submit" class="btn">Ver reporte</button>
+      </div>
+
+      <div class="field">
+        <label>&nbsp;</label>
+        <a href="{% url 'director_dashboard' %}" class="btn secondary">Volver al calendario</a>
+      </div>
+    </form>
+
+    {# ================== MODO: POR INSTRUCTOR ================== #}
+    {% if modo == 'uno' %}
+      <div class="layout">
+        <!-- Columna izquierda: info instructor -->
+        <div>
+          {% if instructor_sel %}
+            <div class="card">
+              <h2>
+                {{ instructor_sel.apellido }}, {{ instructor_sel.nombre }}
+                {% if instructor_sel.nivel_instructor %}
+                  <span class="badge-nivel">Nivel {{ instructor_sel.nivel_instructor }}</span>
+                {% endif %}
+              </h2>
+              <div class="muted">
+                RUT: {{ instructor_sel.rut_usuario }}<br>
+                Edad: {{ instructor_sel.edad|default:"—" }} años<br>
+                Teléfono: {{ instructor_sel.numero_telefono|default:"—" }}<br>
+                Correo: {{ instructor_sel.correo|default:"—" }}
+              </div>
+              <hr style="border:none; border-top:1px solid #e5e7eb; margin:10px 0;">
+              <div class="muted">
+                Disciplina:
+                {% if instructor_sel.disciplina %}
+                  {{ instructor_sel.disciplina|title }}
+                {% else %}
+                  —
+                {% endif %}
+                <br>
+                Idiomas: {{ instructor_sel.idioma|default:"—" }}
+              </div>
+            </div>
+          {% else %}
+            <p class="muted">Seleccione un instructor y un rango de fechas para ver el reporte.</p>
+          {% endif %}
+        </div>
+
+        <!-- Columna derecha: resumen + tabla -->
+        <div>
+          {% if instructor_sel %}
+            <div class="summary-box">
+              Período: <b>{{ desde|date:"d/m/Y" }}</b> al
+              <b>{{ hasta|date:"d/m/Y" }}</b><br>
+              Total minutos dictados: <b>{{ total_minutos }}</b> min<br>
+              Total horas dictadas: <b>{{ total_horas }}</b> h
+            </div>
+
+            {% if clases %}
+              <table>
+                <thead>
+                  <tr>
+                    <th>Fecha</th>
+                    <th>Horario</th>
+                    <th>Disciplina / Nivel</th>
+                    <th>Alumno titular</th>
+                    <th>Alumnos</th>
+                    <th>Duración (min)</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {% for c in clases %}
+                    <tr>
+                      <td>{{ c.hora_inicio|date:"d/m/Y" }}</td>
+                      <td>{{ c.hora_inicio|time:"H:i" }}–{{ c.hora_fin|time:"H:i" }}</td>
+                      <td>
+                        {% if c.disciplina_clase == 'ski' %}
+                          <span class="pill-ski">Ski</span>
+                        {% elif c.disciplina_clase == 'snow' %}
+                          <span class="pill-snow">Snow</span>
+                        {% else %}
+                          {{ c.disciplina_clase }}
+                        {% endif %}
+                        &nbsp; (N{{ c.nivel_clase }})
+                      </td>
+                      <td>{{ c.nombre_titular }}</td>
+                      <td>{{ c.cantidad_alumnos }}</td>
+                      <td>{{ c.duracion }}</td>
+                    </tr>
+                  {% endfor %}
+                </tbody>
+              </table>
+            {% else %}
+              <p class="muted">Este instructor no tiene clases en el período seleccionado.</p>
+            {% endif %}
+          {% endif %}
+        </div>
+      </div>
+
+    {# ================== MODO: TODOS LOS INSTRUCTORES ================== #}
+    {% elif modo == 'todos' %}
+      <div class="layout">
+        <div>
+          <div class="card">
+            <h2>Resumen por instructor</h2>
+            <div class="muted">
+              Período: {{ desde|date:"d/m/Y" }} al {{ hasta|date:"d/m/Y" }}<br>
+              Instructores considerados: {{ instructores|length }}
+            </div>
+          </div>
+        </div>
+        <div>
+          <div class="summary-box">
+            Total minutos dictados (todos): <b>{{ total_minutos_global }}</b> min<br>
+            Total horas dictadas (todos): <b>{{ total_horas_global }}</b> h
+          </div>
+
+          {% if resumen %}
+            <table>
+              <thead>
+                <tr>
+                  <th>Instructor</th>
+                  <th>Total minutos</th>
+                  <th>Total horas</th>
+                  <th>Total clases</th>
+                </tr>
+              </thead>
+              <tbody>
+                {% for r in resumen %}
+                  <tr>
+                    <td>{{ r.rut_usuario__apellido }}, {{ r.rut_usuario__nombre }}</td>
+                    <td>{{ r.total_minutos }}</td>
+                    <td>{{ r.total_minutos_horas }}</td>
+                    <td>{{ r.total_clases }}</td>
+                  </tr>
+                {% endfor %}
+              </tbody>
+            </table>
+          {% else %}
+            <p class="muted">No hay clases en el período seleccionado.</p>
+          {% endif %}
+        </div>
+      </div>
+    {% endif %}
+
+  </div> <!-- /page-shell -->
+</body>
+</html>

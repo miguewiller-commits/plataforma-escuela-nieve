@@ -1,0 +1,229 @@
+{% load static %}
+
+<style>
+  /* === HEADER GENERAL === */
+  .app-header {
+    position: sticky;
+    top: 0;
+    z-index: 50;
+    padding: 10px 24px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    background: radial-gradient(circle at 0 0, #1d4ed8 0, #020617 40%, #020617 100%);
+    color: #e5e7eb;
+    box-shadow: 0 8px 30px rgba(15, 23, 42, 0.75);
+  }
+
+  .app-header-left {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+
+  .app-logo {
+    width: 34px;
+    height: 34px;
+    border-radius: 999px;
+    background: linear-gradient(135deg, #38bdf8, #2563eb);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 700;
+    font-size: 15px;
+    color: #0b1120;
+    box-shadow: 0 6px 18px rgba(37, 99, 235, 0.6);
+  }
+
+  .app-header-main {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+  }
+
+  .app-header-topline {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .app-header-title {
+    font-size: 16px;
+    font-weight: 600;
+  }
+
+  .app-tag {
+    font-size: 11px;
+    padding: 2px 8px;
+    border-radius: 999px;
+    background: rgba(15, 118, 110, 0.15);
+    border: 1px solid rgba(94, 234, 212, 0.55);
+    color: #a5f3fc;
+  }
+
+  .app-subtitle {
+    font-size: 11px;
+    color: #9ca3af;
+  }
+
+  /* Tabs de navegación (director) */
+  .app-tabs {
+    display: flex;
+    gap: 6px;
+    margin-top: 6px;
+  }
+
+  .app-tab {
+    font-size: 12px;
+    padding: 4px 10px;
+    border-radius: 999px;
+    border: 1px solid transparent;
+    background: transparent;
+    color: #e5e7eb;
+    text-decoration: none;
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+  }
+
+  .app-tab span.bullet {
+    width: 6px;
+    height: 6px;
+    border-radius: 999px;
+    background: transparent;
+  }
+
+  .app-tab.is-active {
+    background: #2563eb;
+    border-color: #1d4ed8;
+  }
+
+  .app-tab.is-active span.bullet {
+    background: #bfdbfe;
+  }
+
+  .app-tab:hover {
+    background: rgba(148, 163, 184, 0.22);
+  }
+
+  /* Lado derecho (usuario + logout) */
+  .app-header-right {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-size: 12px;
+  }
+
+  .app-user-role {
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: #9ca3af;
+  }
+
+  .app-user-name {
+    font-weight: 500;
+    text-transform: capitalize;
+  }
+
+  .btn-logout {
+    border-radius: 999px;
+    padding: 5px 12px;
+    border: 1px solid #fca5a5;
+    background: #b91c1c;
+    color: #fef2f2;
+    font-size: 12px;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+  }
+
+  .btn-logout:hover {
+    filter: brightness(0.98);
+  }
+
+  .btn-logout-icon {
+    font-size: 11px;
+  }
+
+  /* Ajuste para el contenido general bajo el header */
+  .page-shell {
+    padding: 18px 26px;
+  }
+
+  .page-title {
+    margin: 0 0 12px;
+    font-size: 20px;
+    font-weight: 600;
+    color: #111827;
+  }
+
+  .page-shell-wide {
+    padding: 18px 32px;
+  }
+
+  @media (max-width: 720px) {
+    .app-header {
+      padding: 10px 14px;
+      flex-direction: column;
+      align-items: flex-start;
+      gap: 8px;
+    }
+    .app-header-right {
+      align-self: flex-end;
+    }
+  }
+</style>
+
+<header class="app-header">
+  <div class="app-header-left">
+    <!-- Logo / iniciales -->
+    <div class="app-logo">
+      SN
+    </div>
+
+    <!-- Título + subtítulo + tabs -->
+    <div class="app-header-main">
+      <div class="app-header-topline">
+        <div class="app-header-title">{{ titulo }}</div>
+        {% if seccion %}
+          <span class="app-tag">
+            {% if seccion == 'boleteria' %}Boletería{% elif seccion == 'director' %}Director{% else %}{{ seccion|capfirst }}{% endif %}
+          </span>
+        {% endif %}
+      </div>
+
+      {% if seccion == 'director' %}
+        <div class="app-subtitle">
+          Panel del director · calendario, asistencia y reportes
+        </div>
+
+      {% elif seccion == 'boleteria' %}
+        <div class="app-subtitle">
+          Vista de boletería · gestión diaria de clases
+        </div>
+      {% endif %}
+    </div>
+  </div>
+
+  <div class="app-header-right">
+    <div>
+      <div class="app-user-role">
+        {% if seccion == 'director' %}Director{% elif seccion == 'boleteria' %}Boletería{% endif %}
+      </div>
+      <div class="app-user-name">
+        {{ request.session.nombre|default:"" }}
+      </div>
+    </div>
+
+    <form method="post" action="{% url 'logout' %}">
+      {% csrf_token %}
+      <button type="submit" class="btn-logout">
+        <span class="btn-logout-icon">⏻</span>
+        <span>Cerrar sesión</span>
+      </button>
+    </form>
+  </div>
+</header>

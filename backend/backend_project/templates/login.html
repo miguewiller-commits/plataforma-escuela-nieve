@@ -3,31 +3,127 @@
 <head>
   <meta charset="UTF-8">
   <title>Iniciar sesión</title>
+
   <style>
-    body { font-family: sans-serif; display: flex; justify-content: center; align-items: center; height: 100vh; }
-    form { border: 1px solid #ccc; padding: 20px; border-radius: 10px; width: 300px; background: #fff; }
-    input { width: 100%; margin-bottom: 10px; padding: 8px; }
-    button { width: 100%; background: #007bff; color: #fff; border: none; padding: 10px; cursor: pointer; }
-    button:hover { background: #0056b3; }
-    .error { color: red; font-size: 14px; }
+    :root {
+      --accent: #0e62f0;
+      --accent-dark: #0849b8;
+      --text-main: #0f172a;
+      --text-muted: #64748b;
+    }
+
+    body {
+      margin: 0;
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Arial, sans-serif;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+
+      background:
+        radial-gradient(circle at 0% 0%, #1e3a8a33 0%, transparent 60%),
+        radial-gradient(circle at 100% 100%, #0f766e33 0%, transparent 60%),
+        #eaf3ff;
+    }
+
+    /* Tarjeta */
+    .login-card {
+      width: 340px;
+      padding: 28px 32px;
+      border-radius: 14px;
+      background: rgba(255, 255, 255, 0.85);
+      backdrop-filter: blur(6px);
+      box-shadow: 0 18px 45px rgba(0, 0, 0, 0.18);
+      animation: fadeIn 0.45s ease;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(8px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+
+    .login-title {
+      font-size: 22px;
+      font-weight: 600;
+      text-align: center;
+      margin-bottom: 18px;
+      color: var(--text-main);
+    }
+
+    label {
+      font-size: 13px;
+      color: var(--text-muted);
+      font-weight: 600;
+      margin-bottom: 4px;
+      display: block;
+    }
+
+    input {
+      width: 100%;
+      padding: 9px 10px;
+      margin-bottom: 14px;
+      border-radius: 6px;
+      border: 1px solid #cbd5e1;
+      font-size: 14px;
+      box-sizing: border-box;
+    }
+
+    input:focus {
+      outline: none;
+      border-color: var(--accent);
+      box-shadow: 0 0 0 1px rgba(14, 98, 240, 0.3);
+    }
+
+    button {
+      width: 100%;
+      padding: 10px 14px;
+      border-radius: 8px;
+      border: none;
+      background: var(--accent);
+      color: #fff;
+      font-size: 15px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: 0.2s;
+    }
+
+    button:hover {
+      background: var(--accent-dark);
+      box-shadow: 0 6px 18px rgba(14, 98, 240, 0.35);
+      transform: translateY(-1px);
+    }
+
+    .error {
+      margin-top: -6px;
+      margin-bottom: 10px;
+      font-size: 13px;
+      color: #d32f2f;
+      text-align: center;
+    }
   </style>
 </head>
+
 <body>
-<form method="post">
-  {% csrf_token %}
-  <label for="username">Usuario (Correo):</label>
-  <input type="text" name="username" id="username" required>
 
-  <label for="password">Contraseña:</label>
-  <input type="password" name="password" id="password" required>
+  <form method="post" class="login-card">
+    {% csrf_token %}
 
-  {% if messages %}
-    {% for message in messages %}
-      <p style="color:red">{{ message }}</p>
-    {% endfor %}
-  {% endif %}
+    <div class="login-title">Iniciar sesión</div>
 
-  <button type="submit">Entrar</button>
-</form>
+    <label for="username">Usuario (Correo)</label>
+    <input type="text" name="username" id="username" required>
+
+    <label for="password">Contraseña</label>
+    <input type="password" name="password" id="password" required>
+
+    {% if messages %}
+      {% for message in messages %}
+        <p class="error">{{ message }}</p>
+      {% endfor %}
+    {% endif %}
+
+    <button type="submit">Entrar</button>
+  </form>
+
 </body>
 </html>

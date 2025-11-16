@@ -1,7 +1,7 @@
 from django.shortcuts import render
 from django.db.models import Sum, Count
 from django.utils.timezone import now, get_current_timezone, make_aware
-from datetime import timedelta, datetime
+from datetime import timedelta, datetime, date
 from clases.models import Clase
 from usuarios.models import Usuario
 from .models import EstadoInstructor
@@ -14,8 +14,16 @@ from django.contrib import messages
 from backend_project.utils import centro_del_sesion
 from django.shortcuts import render, redirect, get_object_or_404
 from django.urls import reverse
+from django.utils.timezone import localdate
 
 
+
+
+def _parse_fecha(value: str, default: date):
+    try:
+        return datetime.strptime(value, "%Y-%m-%d").date()
+    except Exception:
+        return default
 # 🔹 DASHBOARD: vista principal del director
 @role_required('director', 'jefe_centro')
 def director_dashboard(request):
@@ -143,34 +151,142 @@ def director_asistencia(request):
 
 # 🔹 REPORTES MENSUALES
 @role_required('jefe_centro', 'director')
+# 🔹 REPORTES (por instructor / todos los instructores)
+@role_required('jefe_centro', 'director')
+@role_required('jefe_centro', 'director')
 def director_reportes(request):
-    mes = request.GET.get("mes") or now().strftime("%Y-%m")
-    year, month = map(int, mes.split("-"))
+    """
+    Reportes:
+    - Si en el select de instructor se elige un RUT => modo 'uno' (detalle).
+    - Si se elige 'todos' => modo 'todos' (resumen por instructor).
+    """
+    centro = centro_del_sesion(request)
 
-    clases_mes = Clase.objects.filter(
-        hora_inicio__year=year,
-        hora_inicio__month=month
+    # --- Instructores disponibles (del centro) ---
+    qs_instructores = Usuario.objects.filter(
+        tipo_de_usuario__tipo_de_usuario__iexact="instructor"
     )
+    if centro:
+        qs_instructores = qs_instructores.filter(id_centro=centro)
 
-    resumen_min = (
-        clases_mes
-        .values("rut_usuario__rut_usuario", "rut_usuario__nombre", "rut_usuario__apellido")
-        .annotate(minutos_totales=Sum("duracion"), cantidad_clases=Count("id_clase"))
-        .order_by("-minutos_totales")
-    )
+    instructores = qs_instructores.order_by("apellido", "nombre")
+
+    # --- Filtros GET ---
+    inst_id = request.GET.get("inst")  # puede ser RUT, "todos" o None
+    desde_str = request.GET.get("desde")
+    hasta_str = request.GET.get("hasta")
+    mes_str = request.GET.get("mes")  # opcional: viene desde el dashboard (YYYY-MM)
+
+    hoy = localdate()
+
+    # Si viene "mes=YYYY-MM" y no hay desde/hasta, usamos el mes completo
+    if mes_str and not (desde_str or hasta_str):
+        try:
+            year, month = map(int, mes_str.split("-"))
+            desde_default = date(year, month, 1)
+        except Exception:
+            desde_default = hoy.replace(day=1)
+    else:
+        desde_default = hoy.replace(day=1)
+
+    # parse desde/hasta
+    desde = _parse_fecha(desde_str, desde_default)
+    if hasta_str:
+        hasta = _parse_fecha(hasta_str, hoy)
+    else:
+        next_month = (desde.replace(day=28) + timedelta(days=4)).replace(day=1)
+        hasta = next_month - timedelta(days=1)
+
+    if desde > hasta:
+        desde, hasta = hasta, desde
+
+    # Determinar modo según valor de inst
+    if inst_id == "todos":
+        modo = "todos"
+    else:
+        modo = "uno"
+
+    instructor_sel = None
+    clases = []
+    total_minutos = 0
 
     resumen = []
-    for r in resumen_min:
-        horas = round((r["minutos_totales"] or 0) / 60.0, 2)
-        resumen.append({
-            "rut": r["rut_usuario__rut_usuario"],
-            "nombre": r["rut_usuario__nombre"],
-            "apellido": r["rut_usuario__apellido"],
-            "horas_totales": horas,
-            "cantidad_clases": r["cantidad_clases"],
-        })
+    total_minutos_global = 0
 
-    return render(request, "director/reportes.html", {"resumen": resumen, "mes": mes})
+    # ================== MODO: POR INSTRUCTOR ==================
+    if modo == "uno" and inst_id:
+        filtros_instructor = {
+            "rut_usuario": inst_id,
+            "tipo_de_usuario__tipo_de_usuario__iexact": "instructor",
+        }
+        if centro:
+            filtros_instructor["id_centro"] = centro
+
+        instructor_sel = get_object_or_404(Usuario, **filtros_instructor)
+
+        clases = (
+            Clase.objects.filter(
+                rut_usuario=instructor_sel,
+                hora_inicio__date__gte=desde,
+                hora_inicio__date__lte=hasta,
+            )
+            .order_by("hora_inicio")
+        )
+
+        agg = clases.aggregate(total=Sum("duracion"))
+        total_minutos = agg["total"] or 0
+
+    # ================== MODO: TODOS LOS INSTRUCTORES ==================
+    elif modo == "todos":
+        clases_qs = Clase.objects.filter(
+            hora_inicio__date__gte=desde,
+            hora_inicio__date__lte=hasta,
+        )
+        if centro:
+            clases_qs = clases_qs.filter(rut_usuario__id_centro=centro)
+
+        resumen_qs = (
+            clases_qs
+            .values(
+                "rut_usuario__rut_usuario",
+                "rut_usuario__nombre",
+                "rut_usuario__apellido",
+            )
+            .annotate(
+                total_minutos=Sum("duracion"),
+                total_clases=Count("id_clase"),
+            )
+            .order_by("-total_minutos")
+        )
+
+        resumen = []
+        for row in resumen_qs:
+            mins = row["total_minutos"] or 0
+            horas = round(mins / 60.0, 1) if mins else 0
+            row["total_minutos_horas"] = horas
+            resumen.append(row)
+            total_minutos_global += mins
+
+    total_horas = round(total_minutos / 60.0, 1) if total_minutos else 0
+    total_horas_global = round(total_minutos_global / 60.0, 1) if total_minutos_global else 0
+
+    context = {
+        "instructores": instructores,
+        "instructor_sel": instructor_sel,
+        "clases": clases,
+        "desde": desde,
+        "hasta": hasta,
+        "inst_id": inst_id,
+        "total_minutos": total_minutos,
+        "total_horas": total_horas,
+        "modo": modo,
+        "resumen": resumen,
+        "total_minutos_global": total_minutos_global,
+        "total_horas_global": total_horas_global,
+    }
+    return render(request, "director/reportes.html", context)
+
+
 
 
 # 🔹 HISTORIAL DE CLASES

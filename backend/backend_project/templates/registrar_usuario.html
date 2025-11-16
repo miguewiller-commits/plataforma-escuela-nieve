@@ -4,88 +4,227 @@
   <meta charset="UTF-8" />
   <title>Registro de Usuario</title>
   <style>
-    body { font-family: sans-serif; padding: 20px; }
-    form { max-width: 420px; margin: 0 auto; }
-    label { display:block; margin-top:10px; }
-    input, select { width:100%; padding:6px; }
-    button { margin-top:15px; padding:8px 12px; background:#007bff; color:#fff; border:none; cursor:pointer; }
-    button:hover { background:#0056b3; }
-    .oculto { display:none; }
+    :root {
+      --accent: #0e62f0;
+      --accent-dark: #0849b8;
+      --text-main: #0f172a;
+      --text-muted: #64748b;
+      --border-soft: #e2e8f0;
+    }
+
+    body {
+      margin: 0;
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Arial, sans-serif;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      min-height: 100vh;
+      padding: 16px;
+
+      background:
+        radial-gradient(circle at 0% 0%, #1e3a8a33 0%, transparent 60%),
+        radial-gradient(circle at 100% 100%, #0f766e33 0%, transparent 60%),
+        #eaf3ff;
+    }
+
+    .register-card {
+      width: 100%;
+      max-width: 460px;
+      padding: 26px 30px 24px;
+      border-radius: 16px;
+      background: rgba(255, 255, 255, 0.9);
+      backdrop-filter: blur(6px);
+      box-shadow: 0 20px 55px rgba(15, 23, 42, 0.35);
+      box-sizing: border-box;
+      animation: fadeIn 0.45s ease;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(8px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+
+    .register-title {
+      font-size: 22px;
+      font-weight: 600;
+      text-align: center;
+      margin-bottom: 6px;
+      color: var(--text-main);
+    }
+
+    .register-subtitle {
+      font-size: 13px;
+      text-align: center;
+      color: var(--text-muted);
+      margin-bottom: 18px;
+    }
+
+    .field-group {
+      margin-bottom: 10px;
+    }
+
+    label {
+      font-size: 13px;
+      color: var(--text-muted);
+      font-weight: 600;
+      display: block;
+      margin-bottom: 4px;
+    }
+
+    input, select {
+      width: 100%;
+      padding: 8px 9px;
+      border-radius: 7px;
+      border: 1px solid #cbd5e1;
+      font-size: 14px;
+      box-sizing: border-box;
+      background: #ffffff;
+    }
+
+    input:focus,
+    select:focus {
+      outline: none;
+      border-color: var(--accent);
+      box-shadow: 0 0 0 1px rgba(14, 98, 240, 0.25);
+    }
+
+    small {
+      font-size: 11px;
+      color: var(--text-muted);
+    }
+
+    button {
+      width: 100%;
+      margin-top: 8px;
+      margin-bottom: 2px;
+      padding: 10px 14px;
+      background: var(--accent);
+      color: #fff;
+      border: none;
+      border-radius: 8px;
+      font-size: 15px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: 0.2s;
+    }
+
+    button:hover {
+      background: var(--accent-dark);
+      box-shadow: 0 6px 18px rgba(14, 98, 240, 0.35);
+      transform: translateY(-1px);
+    }
+
+    .messages {
+      margin-top: 10px;
+      padding: 8px 10px;
+      border-radius: 8px;
+      font-size: 13px;
+      background: #fef2f2;
+      border: 1px solid #fecaca;
+      color: #b91c1c;
+    }
+
+    .messages li {
+      margin-left: 16px;
+    }
+
+    .oculto {
+      display: none;
+    }
+
+    /* Separador visual para el bloque de instructor */
+    .block-title {
+      margin-top: 14px;
+      margin-bottom: 4px;
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--text-muted);
+      border-top: 1px solid var(--border-soft);
+      padding-top: 8px;
+    }
   </style>
 </head>
 <body>
-  <h1>Registro de Usuario</h1>
 
-  <form method="post">
+  <form method="post" class="register-card">
     {% csrf_token %}
 
-    <p>
+    <div class="register-title">Registro de usuario</div>
+    <div class="register-subtitle">
+      Crea una cuenta para acceder a la plataforma de la escuela.
+    </div>
+
+    <div class="field-group">
       <label for="id_rut_usuario">RUT</label>
       {{ form.rut_usuario }}
-    </p>
+    </div>
 
-    <p>
+    <div class="field-group">
       <label for="id_nombre">Nombre</label>
       {{ form.nombre }}
-    </p>
+    </div>
 
-    <p>
+    <div class="field-group">
       <label for="id_apellido">Apellido</label>
       {{ form.apellido }}
-    </p>
+    </div>
 
-    <p>
+    <div class="field-group">
       <label for="id_correo">Email</label>
       {{ form.correo }}
-    </p>
+    </div>
 
-    <p>
+    <div class="field-group">
       <label for="id_numero_telefono">Teléfono</label>
       {{ form.numero_telefono }}
-    </p>
+    </div>
 
-    <p>
+    <div class="field-group">
       <label for="id_tipo_de_usuario">Tipo de usuario</label>
       {{ form.tipo_de_usuario }}
       <small>Ej: instructor, boleteria, jefe_centro…</small>
-    </p>
-
-    <!-- Bloque que se muestra solo para instructores -->
-    <div id="campos-instructor">
-      <p>
-        <label for="id_disciplina">Disciplina</label>
-        {{ form.disciplina }}
-      </p>
-      <p>
-        <label for="id_nivel_instructor">Nivel del instructor</label>
-        {{ form.nivel_instructor }}
-      </p>
-      <p>
-        <label for="id_idioma">Idiomas</label>
-        {{ form.idioma }}
-      </p>
     </div>
 
-    <p>
+    <!-- Bloque que se muestra solo para instructores -->
+    <div id="campos-instructor" class="oculto">
+      <div class="block-title">Datos del instructor</div>
+
+      <div class="field-group">
+        <label for="id_disciplina">Disciplina</label>
+        {{ form.disciplina }}
+      </div>
+
+      <div class="field-group">
+        <label for="id_nivel_instructor">Nivel del instructor</label>
+        {{ form.nivel_instructor }}
+      </div>
+
+      <div class="field-group">
+        <label for="id_idioma">Idiomas</label>
+        {{ form.idioma }}
+      </div>
+    </div>
+
+    <div class="field-group" style="margin-top:12px;">
       <label for="id_contraseña">Contraseña</label>
       {{ form.contraseña }}
-    </p>
+    </div>
 
-    <p>
+    <div class="field-group">
       <label for="id_confirmar_contraseña">Confirmar contraseña</label>
       {{ form.confirmar_contraseña }}
-    </p>
+    </div>
 
     <button type="submit">Registrar</button>
-  </form>
 
-  {% if messages %}
-    <ul>
-      {% for m in messages %}
-        <li>{{ m }}</li>
-      {% endfor %}
-    </ul>
-  {% endif %}
+    {% if messages %}
+      <ul class="messages">
+        {% for m in messages %}
+          <li>{{ m }}</li>
+        {% endfor %}
+      </ul>
+    {% endif %}
+  </form>
 
   <script>
     document.addEventListener("DOMContentLoaded", function () {
@@ -93,15 +232,15 @@
       const bloqueInstructor = document.getElementById("campos-instructor");
 
       function actualizar() {
-        // para FK: el value suele ser la PK (por ej. "instructor" si así guardaste);
-        // para choices: también será el value. Lo pasamos a minúsculas.
         const val = (selectTipo.value || "").toLowerCase();
-        const esInstructor = val.includes("instructor"); // robusto ante "Instructor" o "instructor"
+        const esInstructor = val.includes("instructor");
         bloqueInstructor.classList.toggle("oculto", !esInstructor);
       }
 
-      selectTipo.addEventListener("change", actualizar);
-      actualizar(); // estado inicial
+      if (selectTipo) {
+        selectTipo.addEventListener("change", actualizar);
+        actualizar(); // estado inicial
+      }
     });
   </script>
 </body>
