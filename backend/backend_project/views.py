@@ -6,6 +6,11 @@ from django.contrib.auth.decorators import login_required, user_passes_test
 from django.contrib import messages
 from usuarios.models import Usuario, Identificador
 from django.contrib.auth.hashers import make_password, check_password # para encriptar contraseña
+from rest_framework.views import APIView
+from rest_framework.response import Response
+from rest_framework.permissions import IsAuthenticated
+from clases.models import Clase
+from datetime import datetime
 
 def login_view(request):
     if request.method == 'POST':
@@ -69,3 +74,37 @@ def registrar_usuario(request):
         form = RegistroForm()
 
     return render(request, 'registrar_usuario.html', {'form': form})
+
+class InstructorClasesView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+        # instructor = request.user (asumiendo que user es el instructor)
+        instructor = request.user
+
+        fecha_str = request.GET.get("fecha")
+        if fecha_str:
+            fecha = datetime.strptime(fecha_str, "%Y-%m-%d").date()
+            clases = Clase.objects.filter(
+                rut_usuario=instructor,
+                hora_inicio__date=fecha,
+            ).order_by("hora_inicio")
+        else:
+            clases = Clase.objects.filter(
+                rut_usuario=instructor,
+            ).order_by("-hora_inicio")[:50]
+
+        data = []
+        for c in clases:
+            data.append({
+                "id": c.id_clase,
+                "hora_inicio": c.hora_inicio.isoformat(),
+                "hora_fin": c.hora_fin.isoformat(),
+                "disciplina": c.disciplina_clase,
+                "nivel": c.nivel_clase,
+                "nombre_titular": c.nombre_titular,
+                "telefono": c.titular_telefono,
+                "cantidad_alumnos": c.cantidad_alumnos,
+            })
+
+        return Response({"results": data})

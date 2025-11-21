@@ -646,7 +646,11 @@
         <p id="cancelar-texto-clase" style="font-size:13px; margin-bottom:12px;"></p>
         <form method="POST" id="form-cancelar-clase">
           {% csrf_token %}
-          <input type="hidden" name="origen" value="director">  <!-- para redirigir a director -->
+          <input type="hidden" name="origen" value="director">
+
+          <!-- 🔹 preserva el día y filtro actuales -->
+          <input type="hidden" name="fecha" value="{{ fecha|date:'Y-m-d' }}">
+          <input type="hidden" name="solo_activos" value="{% if solo_activos %}1{% endif %}">
           <div class="btns">
             <button type="button" class="btn secondary" onclick="cerrarCancelarClase()">No</button>
             <button type="submit" class="btn" style="background:#dc3545; border-color:#dc3545;">Sí, cancelar</button>

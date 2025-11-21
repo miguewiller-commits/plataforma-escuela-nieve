@@ -1,0 +1,22 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <title>{% block title %}Escuela de nieve{% endblock %}</title>
+
+  <!-- Fuente y estilos globales -->
+  <link rel="stylesheet" href="{% static 'css/app.css' %}">
+</head>
+<body>
+
+  {% include 'includes/header.html' %}
+
+  <main class="page-root">
+    <div class="page-shell">
+      {% block content %}{% endblock %}
+    </div>
+  </main>
+
+</body>
+</html>

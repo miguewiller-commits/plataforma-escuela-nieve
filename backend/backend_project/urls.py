@@ -17,6 +17,8 @@ Including another URLconf
 from django.contrib import admin
 from django.urls import path, include
 from . import views
+from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
+from clases.api_views import clases_instructor_dia
 
 urlpatterns = [
     path('admin/', admin.site.urls),
@@ -27,4 +29,15 @@ urlpatterns = [
 
     # boletería
     path("clases/", include("clases.urls")),
+
+    # movil
+        path(
+        "api/instructor/clases-dia/",
+        clases_instructor_dia,
+        name="clases_instructor_dia",
+    ),
+
+    path('api/token/', TokenObtainPairView.as_view(), name='token_obtain_pair'),
+    path('api/token/refresh/', TokenRefreshView.as_view(), name='token_refresh'),
+    path('api/instructor/clases/', clases_instructor_dia),
 ]
