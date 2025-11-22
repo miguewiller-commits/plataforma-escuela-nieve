@@ -11,6 +11,8 @@ from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated
 from clases.models import Clase
 from datetime import datetime
+from .forms import LoginForm, RegistroForm
+from django.contrib.auth.models import User      # 👈 IMPORTANTE
 
 def login_view(request):
     if request.method == 'POST':
@@ -58,22 +60,51 @@ def pagina_director(request):
     return render(request, 'director/dashboard.html')
 
 
+from django.contrib.auth.models import User
+
 def registrar_usuario(request):
     if request.method == 'POST':
         form = RegistroForm(request.POST)
         if form.is_valid():
-            usuario = form.save(commit=False)
+            # Obtener datos limpios del form
+            correo = form.cleaned_data.get("correo")
+            contraseña = form.cleaned_data.get("contraseña")
 
-            # Encriptar contraseña
-            usuario.contraseña = make_password(form.cleaned_data["contraseña"])
+            if not correo:
+                messages.error(request, "El correo es obligatorio.")
+                return render(request, 'registrar_usuario.html', {'form': form})
 
+            # 1) Crear o actualizar auth.User
+            #    Usamos el correo como username
+            user, created = User.objects.get_or_create(
+                username=correo,
+                defaults={
+                    "email": correo,
+                },
+            )
+            # Si ya existía, actualizamos email y contraseña
+            user.email = correo
+            user.set_password(contraseña)
+            user.is_active = True
+            user.save()
+
+            # 2) Crear tu modelo Usuario
+            usuario: Usuario = form.save(commit=False)
+            usuario.contraseña = make_password(contraseña)
             usuario.save()
+
             messages.success(request, "Usuario registrado correctamente.")
             return redirect('login')
+        else:
+            # 👇 Esto te mostrará en pantalla qué está fallando en el formulario
+            messages.error(request, f"Errores en el formulario: {form.errors}")
     else:
         form = RegistroForm()
 
     return render(request, 'registrar_usuario.html', {'form': form})
+
+
+
 
 class InstructorClasesView(APIView):
     permission_classes = [IsAuthenticated]

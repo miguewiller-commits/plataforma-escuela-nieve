@@ -15,6 +15,7 @@ from backend_project.utils import centro_del_sesion
 from django.shortcuts import render, redirect, get_object_or_404
 from django.urls import reverse
 from django.utils.timezone import localdate
+from django.contrib.auth.models import User
 
 
 
@@ -343,8 +344,8 @@ def _redir_dashboard(fecha=None, solo_activos=None):
 @role_required('director', 'jefe_centro')
 def director_crear_instructor(request):
     """
-    Crea un instructor asignándolo automáticamente al centro del director.
-    Preserva ?fecha y ?solo_activos al volver al dashboard.
+    Crea un instructor asignándolo automáticamente al centro del director
+    Y TAMBIÉN crea/actualiza el auth.User para que pueda loguearse por /api/token/.
     """
     # valores de navegación para preservar
     fecha = request.POST.get("fecha") or request.GET.get("fecha")
@@ -359,7 +360,27 @@ def director_crear_instructor(request):
         form = InstructorForm(request.POST)
         if form.is_valid():
             try:
-                form.save(center=centro)  # <-- asigna mismo centro del director
+                # 1) Guardar tu modelo Usuario (ya asigna el centro)
+                usuario = form.save(center=centro)
+
+                # 2) Datos para el auth.User
+                correo = (usuario.correo or "").strip().lower()
+                rut = usuario.rut_usuario
+                raw_password = form.cleaned_data.get("contraseña") or "cambiar123"
+
+                # username = correo (si hay) o RUT
+                username = correo or rut
+
+                # 3) Crear o actualizar el auth.User
+                user, created = User.objects.get_or_create(username=username)
+                user.first_name = usuario.nombre
+                user.last_name = usuario.apellido
+                if correo:
+                    user.email = correo
+                user.is_active = True
+                user.set_password(raw_password)
+                user.save()
+
                 messages.success(request, "Instructor creado correctamente.")
             except Exception as e:
                 messages.error(request, f"No se pudo crear: {e}")
@@ -376,7 +397,9 @@ def director_crear_instructor(request):
 @require_POST
 def director_eliminar_instructor(request, rut):
     """
-    Elimina instructor del mismo centro. Preserva ?fecha y ?solo_activos.
+    Elimina instructor del mismo centro (modelo Usuario)
+    Y también elimina el auth.User asociado (username = correo o rut).
+    Preserva ?fecha y ?solo_activos.
     """
     fecha = request.POST.get("fecha") or request.GET.get("fecha")
     solo_activos = request.POST.get("solo_activos") or request.GET.get("solo_activos")
@@ -396,10 +419,21 @@ def director_eliminar_instructor(request, rut):
         messages.error(request, "Instructor no encontrado en tu centro.")
         return redirect(_redir_dashboard(fecha, solo_activos))
 
+    # Si tiene clases, no lo dejamos borrar (igual que antes)
     if Clase.objects.filter(rut_usuario=inst).exists():
         messages.error(request, "No se puede eliminar: el instructor tiene clases registradas.")
         return redirect(_redir_dashboard(fecha, solo_activos))
 
+    # 🔹 Borrar también el auth.User asociado
+    username_candidates = []
+    if inst.correo:
+        username_candidates.append(inst.correo.strip().lower())
+    username_candidates.append(inst.rut_usuario)
+
+    User.objects.filter(username__in=username_candidates).delete()
+
+    # 🔹 Borrar el registro de Usuario
     inst.delete()
-    messages.success(request, "Instructor eliminado.")
+
+    messages.success(request, "Instructor eliminado (y usuario de acceso eliminado).")
     return redirect(_redir_dashboard(fecha, solo_activos))
