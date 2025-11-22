@@ -1,127 +1,70 @@
-from django.shortcuts import render
-
-# Create your views here.
-from datetime import datetime
-from django.utils.timezone import now
-from django.contrib.auth.hashers import check_password
-from rest_framework.decorators import api_view, permission_classes
-from rest_framework.permissions import AllowAny, IsAuthenticated
+from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
-from rest_framework.authtoken.models import Token
-from rest_framework.views import APIView
+from rest_framework.permissions import AllowAny
+
+from django.contrib.auth.models import User
+from django.contrib.auth.hashers import check_password
+from rest_framework_simplejwt.tokens import RefreshToken
+
 from usuarios.models import Usuario
-from clases.models import Clase
-from .serializers import UsuarioSerializer, ClaseSerializer
 
 
-@api_view(["POST"])
-@permission_classes([AllowAny])
-def api_login(request):
-    correo = request.data.get("correo")
-    password = request.data.get("password")
+class InstructorLoginView(APIView):
+    # esta clase es la que estás importando en urls.py
+    permission_classes = [AllowAny]
+    authentication_classes = []  # no exige JWT para entrar
 
-    if not correo or not password:
-        return Response(
-            {"detail": "Correo y contraseña son obligatorios."},
-            status=status.HTTP_400_BAD_REQUEST,
-        )
+    def post(self, request):
+        correo = request.data.get("correo")
+        password = request.data.get("password")
 
-    try:
-        usuario = Usuario.objects.get(correo=correo)
-    except Usuario.DoesNotExist:
-        return Response(
-            {"detail": "Credenciales inválidas."},
-            status=status.HTTP_401_UNAUTHORIZED,
-        )
-
-    if not check_password(password, usuario.contraseña):
-        return Response(
-            {"detail": "Credenciales inválidas."},
-            status=status.HTTP_401_UNAUTHORIZED,
-        )
-
-    # Token de DRF (uno por usuario)
-    token, _ = Token.objects.get_or_create(user=usuario)
-
-    data_usuario = UsuarioSerializer(usuario).data
-
-    return Response(
-        {
-            "token": token.key,
-            "usuario": data_usuario,
-        }
-    )
-
-from django.utils.timezone import now
-from datetime import datetime
-
-@api_view(["GET"])
-@permission_classes([IsAuthenticated])
-def api_clases_instructor(request):
-    """
-    Devuelve las clases del instructor logueado para una fecha dada.
-    Si no se envía fecha, se usa hoy.
-    """
-    fecha_str = request.GET.get("fecha")
-    if fecha_str:
-        try:
-            fecha = datetime.strptime(fecha_str, "%Y-%m-%d").date()
-        except Exception:
+        if not correo or not password:
             return Response(
-                {"detail": "Formato de fecha inválido. Usa YYYY-MM-DD."},
+                {"detail": "correo y password son obligatorios"},
                 status=status.HTTP_400_BAD_REQUEST,
             )
-    else:
-        fecha = now().date()
 
-    # Asumiendo que el usuario autenticado es tu Usuario
-    usuario = request.user
+        # buscar en tu tabla usuarios_usuario
+        try:
+            instructor = Usuario.objects.get(correo=correo)
+        except Usuario.DoesNotExist:
+            return Response(
+                {"detail": "Credenciales inválidas"},
+                status=status.HTTP_401_UNAUTHORIZED,
+            )
 
-    clases = (
-        Clase.objects.filter(
-            rut_usuario=usuario,
-            hora_inicio__date=fecha,
-        )
-        .order_by("hora_inicio")
-    )
+        # comparar con la contraseña encriptada
+        if not check_password(password, instructor.contraseña):
+            return Response(
+                {"detail": "Credenciales inválidas"},
+                status=status.HTTP_401_UNAUTHORIZED,
+            )
 
-    serializer = ClaseSerializer(clases, many=True)
-    return Response(serializer.data)
-
-from rest_framework_simplejwt.views import TokenObtainPairView
-from .serializers import EmailTokenObtainPairSerializer
-
-class EmailTokenObtainPairView(TokenObtainPairView):
-    serializer_class = EmailTokenObtainPairSerializer
-
-class MisClasesHoyView(APIView):
-    permission_classes = [IsAuthenticated]
-
-    def get(self, request):
-        """
-        Devuelve las clases del instructor logueado para una fecha.
-        Si no se manda ?fecha=YYYY-MM-DD, usa hoy.
-        """
-        fecha_str = request.GET.get("fecha")
-        if fecha_str:
-            try:
-                fecha = datetime.strptime(fecha_str, "%Y-%m-%d").date()
-            except ValueError:
-                return Response({"detail": "Fecha inválida, use YYYY-MM-DD"}, status=400)
+        # crear o reutilizar User de Django vinculado
+        if getattr(instructor, "user", None) is None:
+            user = User.objects.create(
+                username=correo,
+                email=correo,
+                is_active=True,
+            )
+            user.password = instructor.contraseña  # ya viene encriptada
+            user.save()
+            # si aún no tienes el campo user en tu modelo Usuario,
+            # este bloque lo ajustamos después
+            if hasattr(instructor, "user"):
+                instructor.user = user
+                instructor.save(update_fields=["user"])
         else:
-            fecha = datetime.today().date()
+            user = instructor.user
 
-        # el instructor es el usuario logueado
-        usuario = request.user
+        # generar tokens JWT
+        refresh = RefreshToken.for_user(user)
 
-        clases = Clase.objects.filter(
-            rut_usuario=usuario,
-            hora_inicio__date=fecha
-        ).order_by("hora_inicio")
-
-        data = ClaseSerializer(clases, many=True).data
-        return Response({
-            "fecha": fecha.strftime("%Y-%m-%d"),
-            "clases": data
-        })
+        return Response(
+            {
+                "access": str(refresh.access_token),
+                "refresh": str(refresh),
+            },
+            status=status.HTTP_200_OK,
+        )

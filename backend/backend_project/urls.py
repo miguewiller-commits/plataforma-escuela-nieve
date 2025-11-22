@@ -19,6 +19,8 @@ from django.urls import path, include
 from . import views
 from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
 from clases.api_views import clases_instructor_dia
+from api.views import InstructorLoginView
+
 
 urlpatterns = [
     path('admin/', admin.site.urls),
@@ -40,4 +42,6 @@ urlpatterns = [
     path('api/token/', TokenObtainPairView.as_view(), name='token_obtain_pair'),
     path('api/token/refresh/', TokenRefreshView.as_view(), name='token_refresh'),
     path('api/instructor/clases/', clases_instructor_dia),
+    path("api/instructor/login/", InstructorLoginView.as_view(), name="instructor_login"),
+
 ]

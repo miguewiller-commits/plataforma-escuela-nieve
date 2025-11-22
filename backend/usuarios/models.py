@@ -1,5 +1,6 @@
 from django.db import models
 from centros.models import CentroDeEsqui
+from django.contrib.auth.models import User 
 
 class Identificador(models.Model):
     # Ej: "Instructor", "Boleteria", "Jefe_De_Centro"
