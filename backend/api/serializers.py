@@ -3,18 +3,15 @@ from usuarios.models import Usuario
 from clases.models import Clase
 
 class UsuarioSerializer(serializers.ModelSerializer):
+    # Añadido solo para que el serializer pueda mostrar el nombre del tipo de usuario
+    tipo_de_usuario = serializers.CharField(source='tipo_de_usuario.tipo_de_usuario', read_only=True)
+    
     class Meta:
         model = Usuario
         fields = [
-            "rut_usuario",
-            "nombre",
-            "apellido",
-            "correo",
-            "numero_telefono",
-            "tipo_de_usuario",
-            "disciplina",
-            "nivel_instructor",
-            "idioma",
+            "rut_usuario", "nombre", "apellido", "correo", 
+            "numero_telefono", "tipo_de_usuario", "disciplina", 
+            "nivel_instructor", "idioma"
         ]
 
 class ClaseSerializer(serializers.ModelSerializer):
@@ -24,17 +21,10 @@ class ClaseSerializer(serializers.ModelSerializer):
     class Meta:
         model = Clase
         fields = [
-            "id_clase",
-            "disciplina_clase",
-            "nivel_clase",
-            "hora_inicio",
-            "hora_fin",
-            "duracion",
-            "cantidad_alumnos",
-            "nombre_titular",
-            "titular_telefono",
-            "instructor_nombre",
-            "instructor_apellido",
+            "id_clase", "disciplina_clase", "nivel_clase", 
+            "hora_inicio", "hora_fin", "duracion", 
+            "cantidad_alumnos", "nombre_titular", 
+            "titular_telefono", "instructor_nombre", "instructor_apellido"
         ]
 
 from rest_framework_simplejwt.serializers import TokenObtainPairSerializer

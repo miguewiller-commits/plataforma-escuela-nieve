@@ -13,6 +13,10 @@ from clases.models import Clase
 from datetime import datetime
 from .forms import LoginForm, RegistroForm
 from django.contrib.auth.models import User      # 👈 IMPORTANTE
+from django.db.models import Sum
+from api.serializers import UsuarioSerializer, ClaseSerializer
+from director.models import EstadoInstructor
+from django.utils.timezone import localdate
 
 def login_view(request):
     if request.method == 'POST':
@@ -139,3 +143,92 @@ class InstructorClasesView(APIView):
             })
 
         return Response({"results": data})
+    
+class InstructorPerfilView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+        # 1. Buscamos el perfil
+        try:
+            perfil = Usuario.objects.get(correo=request.user.username)
+        except Usuario.DoesNotExist:
+            return Response({"error": "Perfil de instructor no encontrado"}, status=404)
+
+        # 2. CALCULAR ESTADO DE HOY
+        today = localdate()
+        es_activo_hoy = EstadoInstructor.objects.filter(
+            instructor=perfil,
+            fecha=today,
+            activo=True
+        ).exists()
+
+        # 3. Calcular Estadísticas (Horas / Alumnos)
+        now = datetime.now()
+        clases_mes = Clase.objects.filter(
+            rut_usuario=perfil,
+            hora_inicio__year=now.year,
+            hora_inicio__month=now.month
+        )
+
+        resultado = clases_mes.aggregate(
+            sum_min=Sum('duracion'), 
+            sum_alum=Sum('cantidad_alumnos')
+        )
+
+        total_horas = int((resultado['sum_min'] or 0) / 60)
+        total_alumnos = resultado['sum_alum'] or 0
+
+        # 4. Usar Serializer y agregar datos
+        serializer = UsuarioSerializer(perfil)
+        data = dict(serializer.data)
+        
+        data['total_horas'] = total_horas
+        data['total_alumnos'] = total_alumnos
+        data['activo_hoy'] = es_activo_hoy 
+
+        return Response(data)
+
+class InstructorClasesView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+        instructor = request.user 
+        
+        try:
+            perfil = Usuario.objects.get(correo=instructor.username)
+        except Usuario.DoesNotExist:
+            return Response({"error": "Perfil no encontrado"}, status=404)
+
+        fecha_str = request.GET.get("fecha")
+        desde_str = request.GET.get("desde")
+        hasta_str = request.GET.get("hasta")
+        
+        # 1. Filtro por Rango (Historial Mensual)
+        if desde_str and hasta_str:
+            desde = datetime.strptime(desde_str, "%Y-%m-%d").date()
+            hasta = datetime.strptime(hasta_str, "%Y-%m-%d").date()
+            
+            clases = Clase.objects.filter(
+                rut_usuario=perfil,
+                hora_inicio__date__gte=desde, 
+                hora_inicio__date__lte=hasta, 
+            ).order_by("hora_inicio") # Ordenamos cronológicamente
+
+        # 2. Filtro por Día Específico (Agenda Diaria)
+        elif fecha_str:
+            fecha = datetime.strptime(fecha_str, "%Y-%m-%d").date()
+            clases = Clase.objects.filter(
+                rut_usuario=perfil,
+                hora_inicio__date=fecha,
+            ).order_by("hora_inicio")
+            
+        # 3. Filtro por Todo el Historial (Si no hay parámetros)
+        else:
+            clases = Clase.objects.filter(
+                rut_usuario=perfil,
+            ).order_by("-hora_inicio") # Ordenamos de la más reciente a la más antigua
+
+        # Serializamos la lista de clases
+        serializer = ClaseSerializer(clases, many=True)
+
+        return Response({"results": serializer.data})

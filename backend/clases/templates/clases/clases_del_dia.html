@@ -1,370 +1,333 @@
+{% load static %}
 <!DOCTYPE html>
 <html lang="es">
 <head>
   <meta charset="UTF-8" />
-  <title>Clases del día</title>
+  <title>Boletería - SKILAND</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+
   <style>
     :root {
-      --accent: #0e62f0;
-      --accent-soft: #eef2ff;
-      --border-soft: #e5e7eb;
-      --text-main: #0f172a;
-      --text-muted: #6b7280;
+      /* --- PALETA SKILAND --- */
+      --primary: #2563eb;       /* Azul Royal */
+      --primary-dark: #1e40af;
+      --primary-light: #eff6ff;
+      
+      --text-main: #0f172a;     /* Slate 900 */
+      --text-secondary: #475569;/* Slate 600 */
+      --text-muted: #94a3b8;    /* Slate 400 */
+      
+      --bg-body: #f8fafc;
+      --bg-surface: #ffffff;
+      --border: #e2e8f0;
+      
+      --success-bg: #dcfce7; --success-text: #15803d;
+      --danger-bg: #fee2e2;  --danger-text: #b91c1c;
+      --warning-bg: #ffedd5; --warning-text: #c2410c;
+
+      --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+      --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
     }
 
-    /* ====== LAYOUT GENERAL ====== */
+    /* ====== BASE ====== */
     body {
       margin: 0;
-      font-family: system-ui, Arial, sans-serif;
+      font-family: 'Inter', system-ui, -apple-system, sans-serif;
+      background-color: var(--bg-body);
       color: var(--text-main);
-      background:
-        radial-gradient(circle at 0 0, #1e40af22 0, transparent 45%),
-        radial-gradient(circle at 100% 100%, #0f766e22 0, transparent 55%),
-        #e5f0ff;
+      -webkit-font-smoothing: antialiased;
     }
 
-    .page-shell {
-      max-width: 1400px;
-      margin: 0 auto;
-      padding: 18px 24px 32px;
-      box-sizing: border-box;
+    /* ====== HEADER ====== */
+    .app-header {
+      background: var(--bg-surface);
+      height: 64px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 32px;
+      border-bottom: 1px solid var(--border);
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      box-shadow: var(--shadow-sm);
     }
+    .header-left { display: flex; align-items: center; gap: 16px; }
+    .header-logo { height: 32px; width: auto; }
+    .header-title { font-weight: 600; font-size: 16px; color: var(--text-main); border-left: 1px solid var(--border); padding-left: 16px; margin-left: 16px; height: 24px; display: flex; align-items: center; }
+    .header-right { display: flex; align-items: center; gap: 16px; }
+    .user-profile { font-size: 14px; color: var(--text-secondary); font-weight: 500; }
+    .btn-logout { 
+      font-size: 13px; color: var(--text-muted); text-decoration: none; 
+      padding: 6px 12px; border-radius: 6px; border: 1px solid var(--border); 
+      transition: all 0.2s; 
+    }
+    .btn-logout:hover { background: var(--danger-bg); color: var(--danger-text); border-color: #fca5a5; }
 
-    .page-title {
-      margin: 6px 0 16px;
-      font-size: 20px;
-      font-weight: 600;
-      color: #0f172a;
+    /* ====== LAYOUT CONTENT ====== */
+    .page-shell { max-width: 1600px; margin: 0 auto; padding: 32px; }
+
+    .page-header {
+        display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px;
     }
+    .page-title { font-size: 24px; font-weight: 700; color: var(--text-main); margin: 0; letter-spacing: -0.02em; }
+
+    /* ====== METRICAS RAPIDAS (JS) ====== */
+    .quick-stats {
+        display: flex; gap: 24px; background: #fff; padding: 10px 20px; 
+        border-radius: 100px; border: 1px solid var(--border); box-shadow: var(--shadow-sm);
+        font-size: 13px; color: var(--text-secondary);
+    }
+    .stat-item strong { color: var(--text-main); font-weight: 700; font-size: 14px; margin-right: 4px; }
 
     /* ====== TOOLBAR ====== */
     .toolbar {
-      display:flex;
-      gap:8px;
-      align-items:center;
-      margin-bottom:10px;
-      flex-wrap:wrap;
-      padding: 10px 12px;
+      background: var(--bg-surface);
+      border: 1px solid var(--border);
       border-radius: 12px;
-      background: rgba(255,255,255,0.8);
-      border: 1px solid var(--border-soft);
-      box-shadow: 0 6px 18px rgba(15,23,42,0.06);
+      padding: 16px 20px;
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 16px;
+      box-shadow: var(--shadow-sm);
+      margin-bottom: 20px;
     }
-    .toolbar .spacer { flex:1; }
+    .toolbar form { display: flex; gap: 12px; align-items: center; }
+    
+    .input-wrapper { display: flex; flex-direction: column; gap: 4px; }
+    .lbl { font-size: 11px; font-weight: 700; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 0.05em; }
 
-    .toolbar label {
-      font-size: 13px;
-      color: var(--text-muted);
+    input[type="date"], select, input[type="text"], input[type="number"], input[type="time"] {
+      padding: 8px 12px; border-radius: 6px; border: 1px solid var(--border);
+      font-size: 14px; color: var(--text-main); background: #fff; outline: none; transition: all 0.2s;
     }
+    input:focus, select:focus { border-color: var(--primary); box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1); }
 
-    .toolbar input[type="date"] {
-      padding: 5px 8px;
-      border-radius: 6px;
-      border: 1px solid #d1d5db;
-      font-size: 13px;
+    .spacer { flex: 1; }
+
+    /* Grupo de Botones de Navegación (Segmented) */
+    .nav-group { display: flex; background: var(--bg-body); padding: 4px; border-radius: 8px; border: 1px solid var(--border); }
+    .nav-btn {
+        border: none; background: transparent; padding: 6px 12px; font-size: 13px; color: var(--text-secondary); 
+        cursor: pointer; border-radius: 6px; font-weight: 500; transition: all 0.2s;
     }
-
-    /* ====== BOTONES ====== */
+    .nav-btn:hover { color: var(--text-main); background: rgba(0,0,0,0.05); }
+    
+    /* ====== BOTONES PRIMARIOS ====== */
     .btn {
-      border:1px solid var(--accent);
-      background:var(--accent);
-      color:#fff;
-      padding:6px 10px;
-      border-radius:8px;
-      font-size:13px;
-      text-decoration:none;
-      cursor:pointer;
-      display:inline-flex;
-      align-items:center;
-      justify-content:center;
-      gap:4px;
-      transition: background .15s, box-shadow .15s, transform .1s;
+      display: inline-flex; align-items: center; justify-content: center;
+      height: 38px; padding: 0 16px; border-radius: 8px;
+      font-size: 13px; font-weight: 600; text-decoration: none; cursor: pointer;
+      border: 1px solid transparent; transition: all 0.2s; gap: 6px;
     }
-    .btn.secondary {
-      background:#eef2ff;
-      border-color:#d1d5ff;
-      color:#1e3a8a;
-    }
-    .btn.icon {
-      width:30px;
-      height:30px;
-      padding:0;
-    }
-    .btn:hover {
-      filter:brightness(0.97);
-      box-shadow:0 6px 18px rgba(37,99,235,0.35);
-      transform: translateY(-1px);
-    }
+    .btn-primary { background: var(--primary); color: white; box-shadow: 0 1px 2px rgba(0,0,0,0.1); }
+    .btn-primary:hover { background: var(--primary-dark); transform: translateY(-1px); }
+    
+    .btn-secondary { background: #fff; border-color: var(--border); color: var(--text-secondary); }
+    .btn-secondary:hover { background: var(--bg-body); border-color: #cbd5e1; }
 
     /* ====== TABLA ====== */
-    table {
-      border-collapse:collapse;
-      width:100%;
-      font-size:12px;
-      table-layout:auto;
-    }
-
-    th, td {
-      border:1px solid #e5e7eb;
-      text-align:center;
-      padding:0;
-    }
-
-    th {
-      background:#f3f4f6;
-      position:sticky;
-      top:0;
-      z-index:3;
-      padding:6px 8px;
-      font-weight:600;
-    }
-
-    /* primera columna sticky */
-    th:first-child,
-    td.inst-col {
-      position:sticky;
-      left:0;
-      z-index:4;
-      background:#f9fafb;
-    }
-
-    /* ancho columnas hora */
-    th:not(:first-child),
-    td:not(:first-child) {
-      width:90px;
-      min-width:90px;
-    }
-
-    td {
-      position:relative;
-    }
-
-    .inst-col {
-      width:30%;
-      min-width:280px;
-      max-width:340px;
-      text-align:left;
-      background:#f9fafb;
-      padding:10px 12px;
-      box-sizing:border-box;
-    }
-
-    .inst-nombre {
-      font-weight:600;
-      display:flex;
-      align-items:center;
-      gap:6px;
-      margin-bottom:4px;
-    }
-    .inst-meta {
-      font-size:11px;
-      color:var(--text-muted);
-      margin-bottom:4px;
-    }
-
-    .badge { padding:2px 8px; border-radius:999px; font-size:11px; }
-    .badge-ok { background:#e7f7ef; color:#0d7a49; border:1px solid #bde7d1; }
-
-    .empty { color:#bbb; padding:4px; }
-
     .tabla-wrapper {
-      overflow-x:auto;
-      overflow-y:visible;
-      border:1px solid #e5e7eb;
-      border-radius:14px;
-      padding-bottom:1px;
-      background:#ffffff;
-      box-shadow:0 10px 30px rgba(15,23,42,0.12);
+      background: var(--bg-surface);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      overflow-x: auto;
+      box-shadow: var(--shadow-md);
+    }
+    table { width: 100%; border-collapse: separate; border-spacing: 0; }
+    
+    th, td { border-bottom: 1px solid var(--border); border-right: 1px solid var(--border); padding: 0; vertical-align: top; }
+    
+    th {
+      background: #f8fafc; position: sticky; top: 0; z-index: 10;
+      padding: 12px 8px; color: var(--text-secondary); font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; text-align: center;
+    }
+    
+    /* Sticky Column */
+    th:first-child, td.inst-col {
+      position: sticky; left: 0; z-index: 11; background: var(--bg-surface);
+      width: 280px; min-width: 280px; border-right: 2px solid var(--border);
+    }
+    th:first-child { z-index: 12; background: #f8fafc; }
+    td:not(.inst-col) { width: 110px; min-width: 110px; height: 80px; }
+
+    /* Instructor Profile */
+    .inst-col { padding: 12px 16px; vertical-align: middle; }
+    .inst-profile-row { display: flex; align-items: center; gap: 12px; margin-bottom: 6px; }
+    
+    .avatar-circle {
+      width: 32px; height: 32px; border-radius: 50%;
+      background: var(--primary-light); color: var(--primary);
+      font-size: 12px; font-weight: 700; display: flex; align-items: center; justify-content: center;
+      border: 1px solid #dbeafe;
     }
 
-    /* Caja de clase (primer bloque) */
+    .inst-nombre { font-weight: 600; font-size: 14px; color: var(--text-main); }
+    .inst-meta { font-size: 12px; color: var(--text-muted); margin-left: 44px; line-height: 1.4; }
+    
+    .badge-active { 
+        padding: 2px 8px; border-radius: 10px; font-size: 10px; font-weight: 700; 
+        text-transform: uppercase; margin-left: auto;
+        background: var(--success-bg); color: var(--success-text); border: 1px solid #bbf7d0; 
+    }
+
+    /* ====== CLASES (CARDS) ====== */
     .clase-box {
-      text-align:left;
-      background:#eef6ff;
-      border:1px solid #cfe5ff;
-      padding:6px;
-      border-radius:8px;
-      font-size:11px;
-      line-height:1.2;
-      min-height:48px;
-      box-sizing:border-box;
-      transition: box-shadow .15s, transform .1s;
+      margin: 2px; height: calc(100% - 4px); padding: 6px 8px; border-radius: 6px;
+      font-size: 11px; display: flex; flex-direction: column; justify-content: center; text-align: left;
+      position: relative; transition: all 0.2s; cursor: default;
     }
-    .clase-box:hover {
-      transform: translateY(-1px);
-      box-shadow: 0 6px 16px rgba(15,23,42,0.18);
+    .clase-box:hover { transform: scale(1.02); z-index: 20; box-shadow: 0 6px 12px rgba(0,0,0,0.1); }
+
+    .nivel-1 { background: #f0fdf4; border-left: 3px solid #22c55e; }
+    .nivel-2 { background: #eff6ff; border-left: 3px solid #3b82f6; }
+    .nivel-3 { background: #fff7ed; border-left: 3px solid #f97316; }
+    
+    .clase-box.plano { border-radius: 0; border-width: 0; margin: 0; height: 100%; border-left: none; opacity: 0.5; }
+
+    .disc { font-weight: 700; color: var(--text-main); margin-bottom: 2px; text-transform: uppercase;}
+    .hora-rango { color: var(--text-secondary); font-size: 10px; font-weight: 600; margin-bottom: 2px; }
+    .empty { color: #cbd5e1; font-size: 24px; text-align: center; line-height: 80px; font-weight: 200; }
+
+    /* Botonera Hover */
+    .botonera-clase { 
+        position: absolute; top: 4px; right: 4px; display: flex; gap: 4px; 
+        opacity: 0; transition: opacity 0.2s; background: rgba(255,255,255,0.95); 
+        padding: 3px; border-radius: 6px; box-shadow: 0 2px 4px rgba(0,0,0,0.1);
     }
-
-    .disc { font-weight:600; }
-    .hora-rango { font-size:11px; color:#333; }
-
-    .botonera-clase {
-      margin-top:6px;
-      display:flex;
-      gap:4px;
-      justify-content:flex-end;
+    .clase-box:hover .botonera-clase { opacity: 1; }
+    
+    .btn-mini {
+        width: 24px; height: 24px; border: none; border-radius: 4px; font-size: 12px; 
+        display: flex; align-items: center; justify-content: center; cursor: pointer; transition: background 0.2s;
     }
-    .btn-icon-edit,
-    .btn-icon-delete {
-      border:none;
-      border-radius:4px;
-      width:26px;
-      height:26px;
-      font-size:14px;
-      cursor:pointer;
-      display:inline-flex;
-      align-items:center;
-      justify-content:center;
-    }
-    .btn-icon-edit  { background:#007bff; color:#fff; }
-    .btn-icon-delete{ background:#dc3545; color:#fff; }
+    .btn-edit { background: var(--primary-light); color: var(--primary); }
+    .btn-edit:hover { background: var(--primary); color: #fff; }
+    .btn-del { background: var(--danger-bg); color: var(--danger-text); }
+    .btn-del:hover { background: #dc2626; color: #fff; }
 
-    /* Niveles (colores) */
-    .nivel-1 { background:#d6fcdf; }
-    .nivel-2 { background:#cdcefc; }
-    .nivel-3 { background:#fccfcf; }
-
-    /* Bloques planos (continuación: llenan celda) */
-    .clase-box.plano {
-      position:absolute;
-      inset:0;
-      margin:0;
-      padding:0;
-      border-radius:1px;
-      border-width:0;
-      box-sizing:border-box;
-    }
-
-    /* ====== MODALES ESTÉTICOS ====== */
+    /* ====== MODALES (Optimized) ====== */
     .modal-backdrop {
-      position:fixed;
-      inset:0;
-      background:rgba(15,23,42,0.45);
-      display:none;
-      align-items:center;
-      justify-content:center;
-      z-index:9999;
-      backdrop-filter:blur(2px);
+      position: fixed; inset: 0; background: rgba(15, 23, 42, 0.75);
+      display: none; align-items: center; justify-content: center; z-index: 9999;
     }
     .modal {
-      background:#ffffff;
-      border-radius:14px;
-      width:520px;
-      max-width:92vw;
-      padding:24px 28px;
-      box-shadow:0 24px 80px rgba(15,23,42,0.55);
-      font-size:13px;
-      box-sizing:border-box;
+      background: #fff; border-radius: 12px; width: 500px; max-width: 90vw;
+      padding: 32px; box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1);
+      transform: translateY(10px); opacity: 0; animation: fadeUp 0.2s forwards;
     }
-    .modal h2 {
-      margin:0 0 14px 0;
-      font-size:18px;
-      font-weight:600;
-      color:#111827;
-    }
-    .modal label {
-      font-weight:600;
-      font-size:12px;
-      color:#374151;
-      margin-bottom:2px;
-      display:block;
-    }
-    .modal input,
-    .modal select {
-      width:100%;
-      padding:7px 9px;
-      font-size:13px;
-      border-radius:6px;
-      border:1px solid #d1d5db;
-      box-sizing:border-box;
-      background:#ffffff;
-      margin-bottom:6px;
-    }
-    .modal input:focus,
-    .modal select:focus {
-      outline:none;
-      border-color:#2563eb;
-      box-shadow:0 0 0 1px rgba(37,99,235,0.25);
-    }
-    .modal-row { display:flex; gap:8px; }
-    .modal-row > div { flex:1; }
+    @keyframes fadeUp { to { opacity: 1; transform: translateY(0); } }
+    
+    .modal h2 { margin: 0 0 20px 0; font-size: 20px; font-weight: 700; color: var(--text-main); border-bottom: 1px solid var(--border); padding-bottom: 12px; }
+    .modal label { font-weight: 600; font-size: 12px; color: var(--text-secondary); margin-bottom: 4px; display: block; margin-top: 12px;}
+    .modal input, .modal select { width: 100%; box-sizing: border-box; }
+    
+    .modal-row { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+    
+    .modal-buttons { display: flex; justify-content: flex-end; gap: 12px; margin-top: 24px; border-top: 1px solid var(--border); padding-top: 16px;}
+    
+    /* Botones Modal */
+    .btn-modal-cancel { background: #fff; border: 1px solid var(--border); color: var(--text-secondary); padding: 8px 16px; border-radius: 6px; cursor: pointer; font-weight: 500; font-family: inherit;}
+    .btn-modal-cancel:hover { background: var(--bg-body); }
+    
+    .btn-modal-save { background: var(--primary); color: #fff; border: none; padding: 8px 16px; border-radius: 6px; cursor: pointer; font-weight: 500; font-family: inherit;}
+    .btn-modal-save:hover { background: var(--primary-dark); }
+    .btn-modal-danger { background: #dc2626; color: #fff; border: none; padding: 8px 16px; border-radius: 6px; cursor: pointer; font-family: inherit;}
 
-    .modal-buttons {
-      display:flex;
-      justify-content:flex-end;
-      gap:8px;
-      margin-top:16px;
-    }
-    .btn-cancel {
-      background:#e5e7eb;
-      color:#111827;
-      border:none;
-      border-radius:6px;
-      padding:6px 10px;
-      cursor:pointer;
-      min-width:100px;
-    }
-    .btn-save, .btn-edit {
-      background:#0e62f0;
-      color:#fff;
-      border:none;
-      border-radius:6px;
-      padding:6px 10px;
-      cursor:pointer;
-      min-width:110px;
+    /* ====== PRINT STYLES ====== */
+    @media print {
+        .app-header, .toolbar, .botonera-clase, .quick-stats { display: none !important; }
+        .page-shell { padding: 0; max-width: 100%; }
+        .tabla-wrapper { border: none; box-shadow: none; overflow: visible; }
+        body { background: #fff; }
     }
   </style>
 </head>
 <body>
 
-  {% include 'includes/header.html' with titulo='Clases del día' seccion='boleteria' %}
+  <header class="app-header">
+      <div class="header-left">
+          <img src="{% static 'img/LogoSkiland.png' %}" alt="Logo" class="header-logo">
+          <div class="header-title">Boletería</div>
+      </div>
+      <div class="header-right">
+          <div class="user-profile">
+            {% if user.is_authenticated %}{{ user.first_name }} {{ user.last_name }}{% else %}Boletería{% endif %}
+          </div>
+          <a href="{% url 'logout' %}" class="btn-logout">Cerrar Sesión</a>
+      </div>
+  </header>
 
-  <div class="page-shell page-shell-wide">
-    <h1 class="page-title">Clases del día</h1>
+  <div class="page-shell">
+    
+    <div class="page-header">
+        <h1 class="page-title">Clases del día</h1>
+        <div class="quick-stats">
+            <span class="stat-item"><strong><span id="stat-clases">0</span></strong> Clases</span>
+            <span style="color:var(--border);">|</span>
+            <span class="stat-item"><strong><span id="stat-pax">0</span></strong> Pax Totales</span>
+        </div>
+    </div>
 
-    <!-- Toolbar -->
     <div class="toolbar">
-      <form id="filtro-dia" method="get" style="display:flex; gap:8px; align-items:center;">
-        <label>Fecha:</label>
-        <input type="date" name="fecha" id="inp-fecha" value="{{ fecha|date:'Y-m-d' }}" />
-        <button type="submit" class="btn secondary">Aplicar</button>
+      <form id="filtro-dia" method="get" style="display:flex; gap:12px; align-items:center;">
+        <div class="input-wrapper">
+            <span class="lbl">Fecha</span>
+            <input type="date" name="fecha" id="inp-fecha" value="{{ fecha|date:'Y-m-d' }}" />
+        </div>
+        <button type="submit" class="btn btn-secondary" style="margin-top:18px;">Ir a fecha</button>
       </form>
 
       <div class="spacer"></div>
 
-      <button id="btn-prev" class="btn icon" title="Día anterior">◀</button>
-      <button id="btn-today" class="btn secondary" title="Hoy">Hoy</button>
-      <button id="btn-next" class="btn icon" title="Día siguiente">▶</button>
+      <div class="nav-group">
+          <button id="btn-prev" class="nav-btn" title="Día anterior">◀ Ayer</button>
+          <button id="btn-today" class="nav-btn" title="Hoy" style="border-left:1px solid var(--border); border-right:1px solid var(--border);">Hoy</button>
+          <button id="btn-next" class="nav-btn" title="Día siguiente">Mañana ▶</button>
+      </div>
 
-      <button class="btn" onclick="abrirCrear()">+ Nueva clase</button>
+      <button class="btn btn-primary" onclick="abrirCrear()" style="margin-left: 16px;">
+        <span style="font-size:16px; font-weight:400;">+</span> Nueva clase
+      </button>
     </div>
 
     {% if error_crear %}
-      <div style="background:#fee2e2;border:1px solid #dc2626;padding:8px;color:#7f1d1d;margin-bottom:12px;border-radius:8px;font-size:12px;">
-        {{ error_crear }}
+      <div style="background:#fee2e2; border:1px solid #fecaca; padding:12px; color:#b91c1c; margin-bottom:16px; border-radius:8px; font-size:13px; font-weight:500; display:flex; align-items:center; gap:8px;">
+        <span style="font-size:16px;">⚠️</span> {{ error_crear }}
       </div>
     {% endif %}
 
     <div class="tabla-wrapper">
       <table>
-        <tr>
-          <th>Instructor</th>
-          {% for h in horas %}
-            <th>{{ h }}</th>
-          {% endfor %}
-        </tr>
-
+        <thead>
+            <tr>
+                <th>Instructor</th>
+                {% for h in horas %}
+                    <th>{{ h }}</th>
+                {% endfor %}
+            </tr>
+        </thead>
+        <tbody>
         {% for fila in filas_tabla %}
         <tr>
           <td class="inst-col">
-            <div class="inst-nombre">
-              {{ fila.instructor.apellido }}, {{ fila.instructor.nombre }}, {{ fila.instructor.edad|default:"—" }}
-              {% if fila.activo %}<span class="badge badge-ok">Activo</span>{% endif %}
+            <div class="inst-profile-row">
+                <div class="avatar-circle">
+                    {{ fila.instructor.nombre|slice:":1" }}{{ fila.instructor.apellido|slice:":1" }}
+                </div>
+                <div style="flex:1;">
+                    <div style="display:flex; align-items:center;">
+                        <div class="inst-nombre">{{ fila.instructor.apellido }}, {{ fila.instructor.nombre }}</div>
+                        {% if fila.activo %}<span class="badge-active">Activo</span>{% endif %}
+                    </div>
+                </div>
             </div>
             <div class="inst-meta">
-              Nivel {{ fila.instructor.nivel_instructor|default:"—" }} ·
-              {{ fila.instructor.disciplina|default:"—" }}
-              {% if fila.instructor.idioma %} · {{ fila.instructor.idioma }}{% endif %}
+              {{ fila.instructor.disciplina|default:"—"|title }} (N{{ fila.instructor.nivel_instructor|default:"-" }})
+              {% if fila.instructor.idioma %} • {{ fila.instructor.idioma }}{% endif %}
             </div>
           </td>
 
@@ -374,18 +337,15 @@
               {% if clase %}
                 {% with inicio=clase.hora_inicio|time:"H:i" %}
                   {% if celda.hora == inicio %}
-                    <!-- Primer bloque: tarjeta completa -->
                     <div class="clase-box nivel-{{ clase.nivel_clase }}">
                       <div class="disc">{{ clase.disciplina_clase|upper }} (N{{ clase.nivel_clase }})</div>
                       <div class="hora-rango">{{ clase.hora_inicio|time:"H:i" }} – {{ clase.hora_fin|time:"H:i" }}</div>
-                      <div>{{ clase.nombre_titular }}</div>
+                      <div style="font-weight:600; color:var(--text-main);">{{ clase.nombre_titular }}</div>
                       <div>Tel: {{ clase.titular_telefono }}</div>
-                      <div>{{ clase.cantidad_alumnos }} alumno(s)</div>
+                      <div class="pax-counter" data-pax="{{ clase.cantidad_alumnos }}">👥 {{ clase.cantidad_alumnos }}</div>
 
                       <div class="botonera-clase">
-                        <button
-                          class="btn-icon-edit"
-                          title="Modificar"
+                        <button class="btn-mini btn-edit" title="Modificar"
                           data-id="{{ clase.id_clase }}"
                           data-nombre="{{ clase.nombre_titular|escapejs }}"
                           data-telefono="{{ clase.titular_telefono|escapejs }}"
@@ -397,9 +357,7 @@
                           onclick="abrirEditarDesdeBoton(this)"
                         >✏️</button>
 
-                        <button
-                          class="btn-icon-delete"
-                          title="Cancelar clase"
+                        <button class="btn-mini btn-del" title="Cancelar"
                           data-id="{{ clase.id_clase }}"
                           data-nombre="{{ clase.nombre_titular|escapejs }}"
                           onclick="abrirCancelarDesdeBoton(this)"
@@ -407,7 +365,6 @@
                       </div>
                     </div>
                   {% else %}
-                    <!-- Bloques siguientes: solo color plano según nivel -->
                     <div class="clase-box plano nivel-{{ clase.nivel_clase }}"></div>
                   {% endif %}
                 {% endwith %}
@@ -419,40 +376,53 @@
           {% endfor %}
         </tr>
         {% endfor %}
+        </tbody>
       </table>
     </div>
   </div>
 
-  <!-- MODAL CREAR -->
   <div id="modal-crear" class="modal-backdrop">
     <div class="modal">
       <h2>Nueva clase</h2>
-      <form method="POST" action="{% url 'crear_clase' %}">
+      <form method="POST" action="{% url 'crear_clase' %}" onsubmit="activarLoading(this)">
         {% csrf_token %}
         <input type="hidden" name="fecha" value="{{ fecha|date:'Y-m-d' }}">
 
-        <label>Disciplina</label>
-        <select name="disciplina_clase" id="nueva-disciplina" required onchange="filtrarInstructoresCrear()">
-          <option value="ski">Ski</option>
-          <option value="snow">Snow</option>
-        </select>
+        <div class="modal-row">
+            <div>
+                <label>Disciplina</label>
+                <select name="disciplina_clase" id="nueva-disciplina" required onchange="filtrarInstructoresCrear()">
+                  <option value="ski">Ski</option>
+                  <option value="snow">Snow</option>
+                </select>
+            </div>
+            <div>
+                <label>Nivel</label>
+                <select name="nivel_clase" required>
+                  <option value="1">Nivel 1</option>
+                  <option value="2">Nivel 2</option>
+                  <option value="3">Nivel 3</option>
+                </select>
+            </div>
+        </div>
 
         <label>Nombre titular</label>
         <input type="text" name="nombre_titular" required>
 
-        <label>Teléfono titular</label>
-        <input type="text" name="titular_telefono" required>
-
-        <label>Nivel de la clase</label>
-        <select name="nivel_clase" required>
-          <option value="1">Nivel 1</option>
-          <option value="2">Nivel 2</option>
-          <option value="3">Nivel 3</option>
-        </select>
+        <div class="modal-row">
+            <div>
+                <label>Teléfono</label>
+                <input type="text" name="titular_telefono" required>
+            </div>
+            <div>
+                <label>Alumnos</label>
+                <input type="number" name="cantidad_alumnos" min="1" required>
+            </div>
+        </div>
 
         <div class="modal-row">
           <div>
-            <label>Hora inicio (día seleccionado)</label>
+            <label>Hora inicio</label>
             <input type="time" name="hora_sola" required>
           </div>
           <div>
@@ -461,98 +431,127 @@
           </div>
         </div>
 
-        <label>Cantidad de alumnos</label>
-        <input type="number" name="cantidad_alumnos" min="1" required>
-
         <label>Instructor</label>
         <select name="rut_usuario" id="nueva-instructor" required>
           {% for fila in filas_tabla %}
             {% with inst=fila.instructor %}
               <option value="{{ inst.rut_usuario }}" data-disciplina="{{ inst.disciplina|lower }}">
-                {{ inst.apellido }}, {{ inst.nombre }} (Nivel {{ inst.nivel_instructor }} / {{ inst.disciplina }})
+                {{ inst.apellido }}, {{ inst.nombre }} (N{{ inst.nivel_instructor }})
               </option>
             {% endwith %}
           {% endfor %}
         </select>
 
         <div class="modal-buttons">
-          <button type="button" class="btn-cancel" onclick="cerrarCrear()">Cerrar</button>
-          <button type="submit" class="btn-save">Guardar</button>
+          <button type="button" class="btn-modal-cancel" onclick="cerrarCrear()">Cerrar</button>
+          <button type="submit" class="btn-modal-save">Guardar Clase</button>
         </div>
       </form>
     </div>
   </div>
 
-  <!-- MODAL EDITAR -->
   <div id="modal-editar" class="modal-backdrop">
     <div class="modal">
       <h2>Modificar clase</h2>
-      <form method="POST" id="form-editar">
+      <form method="POST" id="form-editar" onsubmit="activarLoading(this)">
         {% csrf_token %}
-
         <input type="hidden" id="edit-id-clase">
 
-        <label>Disciplina</label>
-        <select name="disciplina_clase" id="edit-disciplina" onchange="filtrarInstructoresEditar()" required>
-          <option value="ski">Ski</option>
-          <option value="snow">Snow</option>
-        </select>
+        <div class="modal-row">
+            <div>
+                <label>Disciplina</label>
+                <select name="disciplina_clase" id="edit-disciplina" onchange="filtrarInstructoresEditar()" required>
+                  <option value="ski">Ski</option>
+                  <option value="snow">Snow</option>
+                </select>
+            </div>
+            <div>
+                <label>Nivel</label>
+                <select name="nivel_clase" id="edit-nivel" required>
+                  <option value="1">Nivel 1</option>
+                  <option value="2">Nivel 2</option>
+                  <option value="3">Nivel 3</option>
+                </select>
+            </div>
+        </div>
 
         <label>Nombre titular</label>
         <input type="text" name="nombre_titular" id="edit-nombre" required>
 
-        <label>Teléfono titular</label>
-        <input type="text" name="titular_telefono" id="edit-telefono" required>
+        <div class="modal-row">
+            <div>
+                <label>Teléfono</label>
+                <input type="text" name="titular_telefono" id="edit-telefono" required>
+            </div>
+            <div>
+                <label>Alumnos</label>
+                <input type="number" name="cantidad_alumnos" id="edit-alumnos" min="1" required>
+            </div>
+        </div>
 
-        <label>Nivel de la clase</label>
-        <select name="nivel_clase" id="edit-nivel" required>
-          <option value="1">Nivel 1</option>
-          <option value="2">Nivel 2</option>
-          <option value="3">Nivel 3</option>
-        </select>
-
-        <label>Cantidad de alumnos</label>
-        <input type="number" name="cantidad_alumnos" id="edit-alumnos" min="1" required>
-
-        <label>Duración (min)</label>
-        <input type="number" name="duracion" id="edit-duracion" min="15" step="15" required>
+        <div class="modal-row">
+            <div>
+                <label>Duración (min)</label>
+                <input type="number" name="duracion" id="edit-duracion" min="15" step="15" required>
+            </div>
+        </div>
 
         <label>Instructor</label>
         <select name="rut_usuario" id="edit-instructor" required>
           {% for fila in filas_tabla %}
             {% with inst=fila.instructor %}
               <option value="{{ inst.rut_usuario }}" data-disciplina="{{ inst.disciplina|lower }}">
-                {{ inst.apellido }}, {{ inst.nombre }} (Nivel {{ inst.nivel_instructor }} / {{ inst.disciplina }})
+                {{ inst.apellido }}, {{ inst.nombre }} (N{{ inst.nivel_instructor }})
               </option>
             {% endwith %}
           {% endfor %}
         </select>
 
         <div class="modal-buttons">
-          <button type="button" class="btn-cancel" onclick="cerrarEditar()">Cerrar</button>
-          <button type="submit" class="btn-edit">Guardar cambios</button>
+          <button type="button" class="btn-modal-cancel" onclick="cerrarEditar()">Cerrar</button>
+          <button type="submit" class="btn-modal-save">Guardar cambios</button>
         </div>
       </form>
     </div>
   </div>
 
-  <!-- MODAL CANCELAR -->
   <div id="modal-cancelar" class="modal-backdrop">
     <div class="modal">
       <h2>Cancelar clase</h2>
-      <p id="cancelar-texto" style="font-size:13px; margin-bottom:12px;"></p>
-      <form method="POST" id="form-cancelar">
+      <p id="cancelar-texto" style="font-size:14px; color:var(--text-secondary); margin-bottom:20px; line-height:1.5;"></p>
+      <form method="POST" id="form-cancelar" onsubmit="activarLoading(this)">
         {% csrf_token %}
         <div class="modal-buttons">
-          <button type="button" class="btn-cancel" onclick="cerrarCancelar()">No</button>
-          <button type="submit" class="btn-edit" style="background:#dc3545;">Sí, cancelar</button>
+          <button type="button" class="btn-modal-cancel" onclick="cerrarCancelar()">No, volver</button>
+          <button type="submit" class="btn-modal-danger">Sí, cancelar clase</button>
         </div>
       </form>
     </div>
   </div>
 
   <script>
-    // ---------- Navegación de días ----------
+    // ---------- Métricas en Tiempo Real (JS) ----------
+    document.addEventListener('DOMContentLoaded', () => {
+        const counters = document.querySelectorAll('.pax-counter');
+        let totalPax = 0;
+        let totalClases = counters.length; // Cada tarjeta es una clase
+
+        counters.forEach(c => {
+            totalPax += parseInt(c.dataset.pax) || 0;
+        });
+
+        document.getElementById('stat-clases').innerText = totalClases;
+        document.getElementById('stat-pax').innerText = totalPax;
+    });
+
+    // ---------- Loading State ----------
+    function activarLoading(form) {
+        const btn = form.querySelector('button[type="submit"]');
+        btn.disabled = true;
+        btn.innerText = "Guardando...";
+    }
+
+    // ---------- Navegación ----------
     const formDia  = document.getElementById('filtro-dia');
     const inpFecha = document.getElementById('inp-fecha');
     const btnPrev  = document.getElementById('btn-prev');
@@ -578,23 +577,39 @@
       formDia.submit();
     });
 
-    // ---------- CREAR ----------
-    function abrirCrear(){
-      document.getElementById('modal-crear').style.display = 'flex';
-      filtrarInstructoresCrear();
+    // ---------- Lógica de Modales (Fade) ----------
+    function toggleModal(id, show) {
+        const el = document.getElementById(id);
+        if(show) { 
+            el.style.display='flex'; 
+            setTimeout(() => el.querySelector('.modal').style.opacity = '1', 10);
+            setTimeout(() => el.querySelector('.modal').style.transform = 'translateY(0)', 10);
+        } else {
+            el.querySelector('.modal').style.opacity = '0';
+            el.querySelector('.modal').style.transform = 'translateY(10px)';
+            setTimeout(() => el.style.display='none', 200);
+        }
     }
-    function cerrarCrear(){ document.getElementById('modal-crear').style.display = 'none'; }
 
+    function abrirCrear(){ 
+        toggleModal('modal-crear', true);
+        filtrarInstructoresCrear();
+    }
+    function cerrarCrear(){ toggleModal('modal-crear', false); }
+
+    function cerrarEditar(){ toggleModal('modal-editar', false); }
+    function cerrarCancelar(){ toggleModal('modal-cancelar', false); }
+
+    // ---------- Filtros Instructores ----------
     function filtrarInstructoresCrear(){
       const disc = document.getElementById('nueva-disciplina').value;
       const sel = document.getElementById('nueva-instructor');
       const opciones = sel.querySelectorAll('option');
 
       opciones.forEach(opt => {
-        const d = opt.getAttribute('data-disciplina'); // ski | snow | ambos
-        const visible =
-          (disc === 'ski'  && (d === 'ski'  || d === 'ambos')) ||
-          (disc === 'snow' && (d === 'snow' || d === 'ambos'));
+        const d = opt.getAttribute('data-disciplina');
+        const visible = (disc === 'ski' && (d === 'ski' || d === 'ambos')) ||
+                        (disc === 'snow' && (d === 'snow' || d === 'ambos'));
         opt.hidden = !visible;
       });
 
@@ -605,23 +620,16 @@
       }
     }
 
-    // ---------- EDITAR ----------
     function abrirEditarDesdeBoton(btn){
       abrirEditar(
-        btn.dataset.id,
-        btn.dataset.nombre,
-        btn.dataset.telefono,
-        btn.dataset.nivel,
-        btn.dataset.alumnos,
-        btn.dataset.duracion,
-        btn.dataset.instructor,
-        btn.dataset.disciplina
+        btn.dataset.id, btn.dataset.nombre, btn.dataset.telefono,
+        btn.dataset.nivel, btn.dataset.alumnos, btn.dataset.duracion,
+        btn.dataset.instructor, btn.dataset.disciplina
       );
     }
 
     function abrirEditar(id, nombre, tel, nivel, alumnos, duracion, instructor, disciplina){
-      const modal = document.getElementById('modal-editar');
-      modal.style.display = 'flex';
+      toggleModal('modal-editar', true);
 
       document.getElementById('edit-id-clase').value = id;
       document.getElementById('edit-nombre').value = nombre;
@@ -629,12 +637,10 @@
       document.getElementById('edit-nivel').value = nivel;
       document.getElementById('edit-alumnos').value = alumnos;
       document.getElementById('edit-duracion').value = duracion;
-
       document.getElementById('edit-disciplina').value = disciplina;
 
       filtrarInstructoresEditar();
 
-      // mantener seleccionado el instructor actual si sigue visible
       const sel = document.getElementById('edit-instructor');
       sel.value = instructor;
       const selected = sel.selectedOptions[0];
@@ -643,11 +649,8 @@
         sel.value = firstVisible ? firstVisible.value : '';
       }
 
-      const formEditar = document.getElementById('form-editar');
-      formEditar.action = `/clases/editar/${id}/`;
+      document.getElementById('form-editar').action = `/clases/editar/${id}/`;
     }
-
-    function cerrarEditar(){ document.getElementById('modal-editar').style.display = 'none'; }
 
     function filtrarInstructoresEditar(){
       const disciplinaClase = document.getElementById('edit-disciplina').value;
@@ -656,9 +659,8 @@
 
       opciones.forEach(opt => {
         const d = opt.getAttribute('data-disciplina');
-        const visible =
-          (disciplinaClase === 'ski'  && (d === 'ski'  || d === 'ambos')) ||
-          (disciplinaClase === 'snow' && (d === 'snow' || d === 'ambos'));
+        const visible = (disciplinaClase === 'ski' && (d === 'ski' || d === 'ambos')) ||
+                        (disciplinaClase === 'snow' && (d === 'snow' || d === 'ambos'));
         opt.hidden = !visible;
       });
 
@@ -668,22 +670,16 @@
       }
     }
 
-    // ---------- CANCELAR ----------
     function abrirCancelarDesdeBoton(btn){
       abrirCancelar(btn.dataset.id, btn.dataset.nombre);
     }
 
     function abrirCancelar(id, nombreTitular){
-      const modal = document.getElementById('modal-cancelar');
-      modal.style.display = 'flex';
+      toggleModal('modal-cancelar', true);
       document.getElementById('cancelar-texto').innerText =
-        `¿Seguro que quieres cancelar la clase de "${nombreTitular}"?`;
-      const formCancelar = document.getElementById('form-cancelar');
-      formCancelar.action = `/clases/eliminar/${id}/`;
+        `¿Seguro que quieres cancelar la clase de "${nombreTitular}"? El horario quedará liberado.`;
+      document.getElementById('form-cancelar').action = `/clases/eliminar/${id}/`;
     }
-
-    function cerrarCancelar(){ document.getElementById('modal-cancelar').style.display = 'none'; }
   </script>
-
 </body>
 </html>

@@ -1,210 +1,227 @@
+{% load static %}
 <!DOCTYPE html>
 <html lang="es">
 <head>
   <meta charset="UTF-8">
-  <title>Reportes de clases</title>
+  <title>Reportes - SKILAND</title>
+  
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+
   <style>
     :root {
-      --accent: #0e62f0;
-      --accent-soft: #eef2ff;
-      --border-soft: #e5e7eb;
-      --text-main: #0f172a;
-      --text-muted: #6b7280;
+      /* --- PALETA SKILAND --- */
+      --primary: #2563eb;       /* Azul Royal */
+      --primary-dark: #1e40af;
+      --primary-light: #eff6ff;
+      
+      --text-main: #0f172a;     /* Slate 900 */
+      --text-secondary: #475569;/* Slate 600 */
+      --text-muted: #94a3b8;    /* Slate 400 */
+      
+      --bg-body: #f8fafc;       /* Fondo */
+      --bg-surface: #ffffff;    /* Tarjetas */
+      --border: #e2e8f0;
+      
+      --success-bg: #dcfce7; --success-text: #15803d;
+      --info-bg: #eff6ff;    --info-text: #1e40af;
+
+      --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+      --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
     }
 
-    /* ====== LAYOUT GENERAL ====== */
+    /* ====== BASE ====== */
     body {
       margin: 0;
-      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Arial, sans-serif;
+      font-family: 'Inter', system-ui, -apple-system, sans-serif;
+      background-color: var(--bg-body);
       color: var(--text-main);
-      background:
-        radial-gradient(circle at 0 0, #1e40af22 0, transparent 45%),
-        radial-gradient(circle at 100% 100%, #0f766e22 0, transparent 55%),
-        #e5f0ff;
+      -webkit-font-smoothing: antialiased;
     }
 
-    .page-shell {
-      max-width: 1200px;
-      margin: 0 auto;
-      padding: 18px 24px 32px;
-      box-sizing: border-box;
+    /* ====== HEADER ====== */
+    .app-header {
+      background: var(--bg-surface);
+      height: 64px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 32px;
+      border-bottom: 1px solid var(--border);
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      box-shadow: var(--shadow-sm);
     }
+    .header-left { display: flex; align-items: center; gap: 16px; }
+    .header-logo { height: 32px; width: auto; }
+    .header-title { font-weight: 600; font-size: 16px; color: var(--text-main); border-left: 1px solid var(--border); padding-left: 16px; margin-left: 16px; height: 24px; display: flex; align-items: center; }
+    .header-right { display: flex; align-items: center; gap: 16px; }
+    .user-profile { font-size: 14px; color: var(--text-secondary); font-weight: 500; }
+    .btn-logout { 
+      font-size: 13px; color: var(--text-muted); text-decoration: none; 
+      padding: 6px 12px; border-radius: 6px; border: 1px solid var(--border); 
+      transition: all 0.2s; 
+    }
+    .btn-logout:hover { background: #fee2e2; color: #b91c1c; border-color: #fca5a5; }
+
+    /* ====== LAYOUT ====== */
+    .page-shell { max-width: 1400px; margin: 0 auto; padding: 32px; }
 
     .page-title {
-      margin: 6px 0 16px;
-      font-size: 20px;
-      font-weight: 600;
-      color: #0f172a;
+      font-size: 24px; font-weight: 700; color: var(--text-main);
+      margin-bottom: 24px; letter-spacing: -0.02em;
     }
 
-    /* ====== TOOLBAR / FILTROS ====== */
+    /* ====== TOOLBAR ====== */
     .toolbar {
-      display:flex;
-      flex-wrap:wrap;
-      gap:10px;
-      align-items:flex-end;
-      margin-bottom:18px;
-      padding:12px 14px;
-      border-radius:12px;
-      background: rgba(255,255,255,0.9);
-      border:1px solid var(--border-soft);
-      box-shadow:0 8px 22px rgba(15,23,42,0.10);
+      background: var(--bg-surface);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 20px;
+      margin-bottom: 24px;
+      box-shadow: var(--shadow-sm);
+      display: flex;
+      flex-wrap: wrap;
+      align-items: flex-end;
+      gap: 16px;
     }
-    .toolbar .field {
-      display:flex;
-      flex-direction:column;
-      gap:2px;
-      font-size:12px;
+
+    .field { display: flex; flex-direction: column; gap: 6px; }
+    .field label { font-size: 11px; font-weight: 700; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 0.05em; }
+
+    select, input[type="date"] {
+      padding: 9px 12px; border-radius: 6px; border: 1px solid var(--border);
+      font-size: 14px; color: var(--text-main); background: #fff; font-family: inherit;
+      min-width: 200px; outline: none; transition: all 0.2s;
     }
-    .toolbar label {
-      font-weight:600;
-      color:#374151;
-    }
-    .toolbar select,
-    .toolbar input {
-      padding:6px 8px;
-      font-size:13px;
-      border-radius:6px;
-      border:1px solid #d1d5db;
-      min-width:170px;
-      background:#ffffff;
-    }
-    .toolbar select:focus,
-    .toolbar input:focus {
-      outline:none;
-      border-color:#2563eb;
-      box-shadow:0 0 0 1px rgba(37,99,235,0.25);
-    }
+    select:focus, input:focus { border-color: var(--primary); box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1); }
 
     /* ====== BOTONES ====== */
     .btn {
-      border:1px solid #2563eb;
-      background:#2563eb;
-      color:#fff;
-      padding:7px 12px;
-      border-radius:8px;
-      font-size:13px;
-      text-decoration:none;
-      cursor:pointer;
-      display:inline-flex;
-      align-items:center;
-      justify-content:center;
-      gap:4px;
-      transition: background .15s, box-shadow .15s, transform .1s;
+      display: inline-flex; align-items: center; justify-content: center;
+      height: 38px; padding: 0 16px; border-radius: 8px;
+      font-size: 13px; font-weight: 600; text-decoration: none; cursor: pointer;
+      border: 1px solid transparent; transition: all 0.2s;
     }
-    .btn.secondary {
-      background:#e5e7eb;
-      border-color:#e5e7eb;
-      color:#111827;
-    }
-    .btn:hover {
-      filter:brightness(0.96);
-      box-shadow:0 6px 18px rgba(37,99,235,0.35);
-      transform: translateY(-1px);
-    }
+    .btn-primary { background: var(--primary); color: white; box-shadow: 0 1px 2px rgba(0,0,0,0.1); }
+    .btn-primary:hover { background: var(--primary-dark); transform: translateY(-1px); }
+    
+    .btn-secondary { background: #fff; border-color: var(--border); color: var(--text-secondary); }
+    .btn-secondary:hover { background: var(--bg-body); border-color: #cbd5e1; color: var(--text-main); }
 
-    /* ====== LAYOUT CONTENIDO ====== */
-    .layout {
-      display:grid;
-      grid-template-columns: minmax(0, 290px) minmax(0, 1fr);
-      gap:18px;
-      align-items:flex-start;
+    /* ====== GRID LAYOUT ====== */
+    .layout-grid {
+      display: grid; grid-template-columns: 320px 1fr; gap: 24px; align-items: start;
     }
-    @media (max-width: 900px) {
-      .layout { grid-template-columns: 1fr; }
-    }
+    @media (max-width: 1024px) { .layout-grid { grid-template-columns: 1fr; } }
 
-    /* Tarjeta info instructor */
+    /* ====== CARDS (PERFIL) ====== */
     .card {
-      border:1px solid #e5e7eb;
-      border-radius:12px;
-      padding:14px 16px;
-      background:#f9fafb;
-      font-size:13px;
-      box-shadow:0 10px 26px rgba(15,23,42,0.10);
+      background: var(--bg-surface);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 24px;
+      box-shadow: var(--shadow-sm);
     }
-    .card h2 {
-      margin:0 0 8px 0;
-      font-size:15px;
+    
+    .card h2 { 
+      margin: 0 0 16px 0; font-size: 18px; font-weight: 700; color: var(--text-main); 
+      display: flex; align-items: center; flex-wrap: wrap; gap: 8px;
     }
+    
     .badge-nivel {
-      display:inline-block;
-      font-size:11px;
-      padding:2px 6px;
-      border-radius:999px;
-      background:#e5e7eb;
-      margin-left:4px;
+      font-size: 11px; background: var(--primary-light); color: var(--primary);
+      padding: 2px 8px; border-radius: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.02em;
     }
-    .muted { color:#6b7280; font-size:12px; }
+    
+    .info-list { font-size: 13px; color: var(--text-secondary); line-height: 2; }
+    .info-list strong { color: var(--text-main); font-weight: 600; min-width: 70px; display: inline-block; }
+    .hr-divider { border: 0; border-top: 1px solid var(--border); margin: 16px 0; }
 
-    /* Resumen horas */
-    .summary-box {
-      border-radius:12px;
-      background:#eff6ff;
-      padding:12px 14px;
-      margin-bottom:10px;
-      font-size:13px;
-      border:1px solid #bfdbfe;
-      box-shadow:0 6px 20px rgba(37,99,235,0.15);
+    /* ====== KPI CARDS ====== */
+    .kpi-row {
+      display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 16px; margin-bottom: 24px;
     }
-    .summary-box b { font-size:15px; }
+    .kpi-card {
+      background: var(--bg-surface); border: 1px solid var(--border);
+      border-radius: 12px; padding: 16px; box-shadow: var(--shadow-sm);
+      display: flex; flex-direction: column; gap: 4px;
+    }
+    .kpi-label { font-size: 11px; text-transform: uppercase; color: var(--text-muted); font-weight: 700; letter-spacing: 0.05em; }
+    .kpi-value { font-size: 24px; font-weight: 700; color: var(--text-main); }
 
-    /* Tabla de clases / resumen */
-    table {
-      border-collapse:collapse;
-      width:100%;
-      font-size:12px;
-      background:#ffffff;
-      border-radius:10px;
-      overflow:hidden;
-      box-shadow:0 8px 22px rgba(15,23,42,0.10);
+    .range-display {
+      background: var(--primary-light); color: var(--primary-dark);
+      padding: 10px 16px; border-radius: 8px; font-weight: 600; font-size: 14px;
+      margin-bottom: 16px; display: inline-block; border: 1px solid #dbeafe;
     }
-    th, td {
-      border:1px solid #e5e7eb;
-      text-align:left;
-      padding:6px 8px;
+
+    /* ====== TABLE ====== */
+    .table-container {
+      background: var(--bg-surface);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      overflow: hidden;
+      box-shadow: var(--shadow-sm);
     }
+
+    table { width: 100%; border-collapse: collapse; font-size: 13px; }
+    th, td { padding: 14px 16px; text-align: left; border-bottom: 1px solid var(--border); }
+    
     th {
-      background:#f3f4f6;
-      font-weight:600;
+      background: #f8fafc; color: var(--text-secondary);
+      font-weight: 600; text-transform: uppercase; font-size: 11px; letter-spacing: 0.05em;
     }
-    tr:nth-child(even) td { background:#f9fafb; }
+    tr:last-child td { border-bottom: none; }
+    tr:hover td { background: #f8fafc; }
 
-    .pill-ski {
-      display:inline-block;
-      padding:2px 6px;
-      border-radius:999px;
-      font-size:11px;
-      background:#ecfdf5;
-      color:#047857;
-      border:1px solid #bbf7d0;
-    }
-    .pill-snow {
-      display:inline-block;
-      padding:2px 6px;
-      border-radius:999px;
-      font-size:11px;
-      background:#eff6ff;
-      color:#1d4ed8;
-      border:1px solid #bfdbfe;
+    /* Pills */
+    .pill { display: inline-flex; padding: 2px 8px; border-radius: 12px; font-size: 11px; font-weight: 600; text-transform: uppercase; }
+    .pill-ski { background: var(--success-bg); color: var(--success-text); }
+    .pill-snow { background: var(--info-bg); color: var(--info-text); }
+
+    .empty-state { text-align: center; color: var(--text-muted); padding: 40px; font-size: 14px; }
+
+    /* ====== PRINT ====== */
+    @media print {
+        .app-header, .toolbar, .btn-secondary { display: none !important; }
+        .page-shell { padding: 0; max-width: 100%; }
+        .card, .table-container, .kpi-card { box-shadow: none; border: 1px solid #000; }
+        body { background: #fff; }
     }
   </style>
 </head>
+
 <body>
-  {% include 'includes/header.html' with titulo='Reportes de instructores' seccion='director' subseccion='reportes' %}
+
+  <header class="app-header">
+      <div class="header-left">
+          <img src="{% static 'img/LogoSkiland.png' %}" alt="Logo" class="header-logo">
+          <div class="header-title">Reportes</div>
+      </div>
+      <div class="header-right">
+          <div class="user-profile">
+            {% if user.is_authenticated %}
+                {{ user.first_name }} {{ user.last_name }}
+            {% else %}
+                Director
+            {% endif %}
+          </div>
+          <a href="{% url 'logout' %}" class="btn-logout">Cerrar Sesión</a>
+      </div>
+  </header>
 
   <div class="page-shell">
-    <h1 class="page-title">Reportes de instructores</h1>
+    <h1 class="page-title">Reportes de Instructores</h1>
 
-    <!-- FILTROS -->
     <form method="get" class="toolbar">
       <div class="field">
         <label>Instructor</label>
         <select name="inst">
-          <option value="">Seleccione un instructor…</option>
-          <option value="todos" {% if inst_id == 'todos' %}selected{% endif %}>
-            Todos los instructores
-          </option>
+          <option value="">Seleccione...</option>
+          <option value="todos" {% if inst_id == 'todos' %}selected{% endif %}>Todos los instructores</option>
           {% for inst in instructores %}
             <option value="{{ inst.rut_usuario }}" {% if inst_id == inst.rut_usuario %}selected{% endif %}>
               {{ inst.apellido }}, {{ inst.nombre }}
@@ -217,155 +234,216 @@
         <label>Desde</label>
         <input type="date" name="desde" value="{{ desde|date:'Y-m-d' }}">
       </div>
+      
       <div class="field">
         <label>Hasta</label>
         <input type="date" name="hasta" value="{{ hasta|date:'Y-m-d' }}">
       </div>
 
-      <div class="field">
-        <label>&nbsp;</label>
-        <button type="submit" class="btn">Ver reporte</button>
+      <div class="field" style="justify-content: flex-end; padding-bottom: 1px;">
+        <button type="submit" class="btn btn-primary">Generar Reporte</button>
       </div>
 
-      <div class="field">
-        <label>&nbsp;</label>
-        <a href="{% url 'director_dashboard' %}" class="btn secondary">Volver al calendario</a>
+      <div class="field" style="margin-left: auto; justify-content: flex-end; padding-bottom: 1px;">
+        <a href="{% url 'director_dashboard' %}" class="btn btn-secondary">Volver al Calendario</a>
       </div>
     </form>
 
     {# ================== MODO: POR INSTRUCTOR ================== #}
     {% if modo == 'uno' %}
-      <div class="layout">
-        <!-- Columna izquierda: info instructor -->
+      <div class="layout-grid">
+        
         <div>
           {% if instructor_sel %}
             <div class="card">
               <h2>
-                {{ instructor_sel.apellido }}, {{ instructor_sel.nombre }}
+                {{ instructor_sel.nombre }} {{ instructor_sel.apellido }}
                 {% if instructor_sel.nivel_instructor %}
                   <span class="badge-nivel">Nivel {{ instructor_sel.nivel_instructor }}</span>
                 {% endif %}
               </h2>
-              <div class="muted">
-                RUT: {{ instructor_sel.rut_usuario }}<br>
-                Edad: {{ instructor_sel.edad|default:"—" }} años<br>
-                Teléfono: {{ instructor_sel.numero_telefono|default:"—" }}<br>
-                Correo: {{ instructor_sel.correo|default:"—" }}
+              
+              <div class="info-list">
+                <div><strong>RUT:</strong> {{ instructor_sel.rut_usuario }}</div>
+                
+                <div>
+                    <strong>Edad:</strong> {{ instructor_sel.edad|default:"--" }} años
+                </div>
+                <div>
+                    <strong>Teléfono:</strong> {{ instructor_sel.numero_telefono|default:"--" }}
+                </div>
+                <div>
+                    <strong>Correo:</strong> 
+                    <a href="mailto:{{ instructor_sel.correo|default:'' }}" style="color:var(--primary); text-decoration:none;">
+                        {{ instructor_sel.correo|default:"--" }}
+                    </a>
+                </div>
               </div>
-              <hr style="border:none; border-top:1px solid #e5e7eb; margin:10px 0;">
-              <div class="muted">
-                Disciplina:
-                {% if instructor_sel.disciplina %}
-                  {{ instructor_sel.disciplina|title }}
-                {% else %}
-                  —
-                {% endif %}
-                <br>
-                Idiomas: {{ instructor_sel.idioma|default:"—" }}
+              
+              <div class="hr-divider"></div>
+              
+              <div class="info-list">
+                <div><strong>Disciplina:</strong> {{ instructor_sel.disciplina|default:"—"|title }}</div>
+                <div><strong>Idiomas:</strong> {{ instructor_sel.idioma|default:"—" }}</div>
               </div>
             </div>
           {% else %}
-            <p class="muted">Seleccione un instructor y un rango de fechas para ver el reporte.</p>
+            <div class="card empty-state">
+              Seleccione un instructor y rango de fechas para ver detalles.
+            </div>
           {% endif %}
         </div>
 
-        <!-- Columna derecha: resumen + tabla -->
         <div>
           {% if instructor_sel %}
-            <div class="summary-box">
-              Período: <b>{{ desde|date:"d/m/Y" }}</b> al
-              <b>{{ hasta|date:"d/m/Y" }}</b><br>
-              Total minutos dictados: <b>{{ total_minutos }}</b> min<br>
-              Total horas dictadas: <b>{{ total_horas }}</b> h
+            
+            <div class="range-display">
+                📅 Periodo: {{ desde|date:"d M Y" }} — {{ hasta|date:"d M Y" }}
             </div>
 
-            {% if clases %}
-              <table>
-                <thead>
-                  <tr>
-                    <th>Fecha</th>
-                    <th>Horario</th>
-                    <th>Disciplina / Nivel</th>
-                    <th>Alumno titular</th>
-                    <th>Alumnos</th>
-                    <th>Duración (min)</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {% for c in clases %}
+            <div class="kpi-row">
+                <div class="kpi-card">
+                    <span class="kpi-label">Total Horas</span>
+                    <span class="kpi-value">{{ total_horas }} h</span>
+                </div>
+                <div class="kpi-card">
+                    <span class="kpi-label">Minutos Exactos</span>
+                    <span class="kpi-value">{{ total_minutos }} m</span>
+                </div>
+                <div class="kpi-card">
+                    <span class="kpi-label">Total Alumnos</span>
+                    <span class="kpi-value" id="total-alumnos-kpi">--</span>
+                </div>
+            </div>
+
+            <div class="table-container">
+              {% if clases %}
+                <table>
+                  <thead>
                     <tr>
-                      <td>{{ c.hora_inicio|date:"d/m/Y" }}</td>
-                      <td>{{ c.hora_inicio|time:"H:i" }}–{{ c.hora_fin|time:"H:i" }}</td>
-                      <td>
-                        {% if c.disciplina_clase == 'ski' %}
-                          <span class="pill-ski">Ski</span>
-                        {% elif c.disciplina_clase == 'snow' %}
-                          <span class="pill-snow">Snow</span>
-                        {% else %}
-                          {{ c.disciplina_clase }}
-                        {% endif %}
-                        &nbsp; (N{{ c.nivel_clase }})
-                      </td>
-                      <td>{{ c.nombre_titular }}</td>
-                      <td>{{ c.cantidad_alumnos }}</td>
-                      <td>{{ c.duracion }}</td>
+                      <th>Fecha</th>
+                      <th>Horario</th>
+                      <th>Disciplina / Nivel</th>
+                      <th>Titular</th>
+                      <th>Alumnos</th>
+                      <th>Minutos</th>
                     </tr>
-                  {% endfor %}
-                </tbody>
-              </table>
-            {% else %}
-              <p class="muted">Este instructor no tiene clases en el período seleccionado.</p>
-            {% endif %}
+                  </thead>
+                  <tbody>
+                    {% for c in clases %}
+                      <tr>
+                        <td>{{ c.hora_inicio|date:"d/m/Y" }}</td>
+                        <td>{{ c.hora_inicio|time:"H:i" }} – {{ c.hora_fin|time:"H:i" }}</td>
+                        <td>
+                          {% if c.disciplina_clase == 'ski' %}
+                            <span class="pill pill-ski">Ski</span>
+                          {% elif c.disciplina_clase == 'snow' %}
+                            <span class="pill pill-snow">Snow</span>
+                          {% else %}
+                            {{ c.disciplina_clase|title }}
+                          {% endif %}
+                          <span style="color:var(--text-secondary); margin-left:4px;">N{{ c.nivel_clase }}</span>
+                        </td>
+                        <td>{{ c.nombre_titular }}</td>
+                        <td class="dato-alumno">{{ c.cantidad_alumnos }}</td>
+                        <td>{{ c.duracion }}</td>
+                      </tr>
+                    {% endfor %}
+                  </tbody>
+                </table>
+              {% else %}
+                <div class="empty-state">
+                  No se encontraron clases para este instructor en el período seleccionado.
+                </div>
+              {% endif %}
+            </div>
           {% endif %}
         </div>
       </div>
 
     {# ================== MODO: TODOS LOS INSTRUCTORES ================== #}
     {% elif modo == 'todos' %}
-      <div class="layout">
+      <div class="layout-grid">
+        
         <div>
           <div class="card">
-            <h2>Resumen por instructor</h2>
-            <div class="muted">
-              Período: {{ desde|date:"d/m/Y" }} al {{ hasta|date:"d/m/Y" }}<br>
-              Instructores considerados: {{ instructores|length }}
+            <h2>Resumen General</h2>
+            <div class="info-list">
+              <div><strong>Desde:</strong> {{ desde|date:"d/m/Y" }}</div>
+              <div><strong>Hasta:</strong> {{ hasta|date:"d/m/Y" }}</div>
+              <div class="hr-divider"></div>
+              <div><strong>Instructores:</strong> {{ instructores|length }}</div>
             </div>
           </div>
         </div>
-        <div>
-          <div class="summary-box">
-            Total minutos dictados (todos): <b>{{ total_minutos_global }}</b> min<br>
-            Total horas dictadas (todos): <b>{{ total_horas_global }}</b> h
-          </div>
 
-          {% if resumen %}
-            <table>
-              <thead>
-                <tr>
-                  <th>Instructor</th>
-                  <th>Total minutos</th>
-                  <th>Total horas</th>
-                  <th>Total clases</th>
-                </tr>
-              </thead>
-              <tbody>
-                {% for r in resumen %}
+        <div>
+            <div class="kpi-row">
+                <div class="kpi-card">
+                    <span class="kpi-label">Total Horas (Global)</span>
+                    <span class="kpi-value">{{ total_horas_global }} h</span>
+                </div>
+                <div class="kpi-card">
+                    <span class="kpi-label">Total Minutos</span>
+                    <span class="kpi-value">{{ total_minutos_global }} m</span>
+                </div>
+            </div>
+
+          <div class="table-container">
+            {% if resumen %}
+              <table>
+                <thead>
                   <tr>
-                    <td>{{ r.rut_usuario__apellido }}, {{ r.rut_usuario__nombre }}</td>
-                    <td>{{ r.total_minutos }}</td>
-                    <td>{{ r.total_minutos_horas }}</td>
-                    <td>{{ r.total_clases }}</td>
+                    <th>Instructor</th>
+                    <th>Minutos</th>
+                    <th>Horas Totales</th>
+                    <th>Cant. Clases</th>
                   </tr>
-                {% endfor %}
-              </tbody>
-            </table>
-          {% else %}
-            <p class="muted">No hay clases en el período seleccionado.</p>
-          {% endif %}
+                </thead>
+                <tbody>
+                  {% for r in resumen %}
+                    <tr>
+                      <td style="font-weight: 500; color: var(--text-main);">
+                        {{ r.rut_usuario__apellido }}, {{ r.rut_usuario__nombre }}
+                      </td>
+                      <td>{{ r.total_minutos }}</td>
+                      <td><strong>{{ r.total_minutos_horas }}</strong></td>
+                      <td>{{ r.total_clases }}</td>
+                    </tr>
+                  {% endfor %}
+                </tbody>
+              </table>
+            {% else %}
+              <div class="empty-state">
+                No hay registros de clases en el período seleccionado.
+              </div>
+            {% endif %}
+          </div>
         </div>
       </div>
     {% endif %}
 
-  </div> <!-- /page-shell -->
+  </div> <script>
+    // === SCRIPT PARA CONTAR ALUMNOS (PAX) ===
+    document.addEventListener("DOMContentLoaded", function() {
+        let sumaPax = 0;
+        const celdasAlumnos = document.querySelectorAll('.dato-alumno');
+        
+        if (celdasAlumnos.length > 0) {
+            celdasAlumnos.forEach(celda => {
+                const valor = parseInt(celda.innerText) || 0;
+                sumaPax += valor;
+            });
+            const kpiDisplay = document.getElementById('total-alumnos-kpi');
+            if (kpiDisplay) {
+                kpiDisplay.innerText = sumaPax + " pax";
+            }
+        } else {
+            const kpiDisplay = document.getElementById('total-alumnos-kpi');
+            if (kpiDisplay) kpiDisplay.innerText = "0";
+        }
+    });
+  </script>
+
 </body>
 </html>
