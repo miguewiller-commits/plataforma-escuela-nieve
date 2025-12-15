@@ -5,11 +5,8 @@ class LoginForm(forms.Form):
     username = forms.CharField(label='Usuario')
     password = forms.CharField(label='Contraseña', widget=forms.PasswordInput)
 
+# --- FORMULARIO DE REGISTRO (Con el arreglo de id_centro) ---
 class RegistroForm(forms.ModelForm):
-    contraseña = forms.CharField(widget=forms.PasswordInput)
-    confirmar_contraseña = forms.CharField(widget=forms.PasswordInput)
-
-    # si es FK:
     tipo_de_usuario = forms.ModelChoiceField(
         queryset=Identificador.objects.all(),
         empty_label="Seleccione un tipo de usuario",
@@ -24,29 +21,24 @@ class RegistroForm(forms.ModelForm):
             "apellido",
             "correo",
             "numero_telefono",
+            "id_centro",       # <--- El campo corregido
             "tipo_de_usuario",
             "disciplina",
             "nivel_instructor",
             "idioma",
-            "contraseña",
         ]
 
     def clean(self):
         cd = super().clean()
 
-        # contraseñas iguales
-        if cd.get("contraseña") != cd.get("confirmar_contraseña"):
-            self.add_error("confirmar_contraseña", "Las contraseñas no coinciden")
-
+        # Validación lógica para instructores
         tipo = cd.get("tipo_de_usuario")
-        # si usas FK, tipo.tipo_de_usuario es la cadena ('instructor', 'boleteria', etc.)
         tipo_str = ""
         if tipo is not None:
             tipo_str = getattr(tipo, "tipo_de_usuario", str(tipo)).lower()
 
-        es_instructor = (tipo_str == "instructor")
+        es_instructor = ("instructor" in tipo_str)
 
-        # requeridos solo para instructores
         if es_instructor:
             if not cd.get("disciplina"):
                 self.add_error("disciplina", "Obligatorio para instructores.")
@@ -55,7 +47,7 @@ class RegistroForm(forms.ModelForm):
             if not cd.get("idioma"):
                 self.add_error("idioma", "Obligatorio para instructores.")
         else:
-            # normaliza/limpia si no es instructor
+            # Limpiar campos si no es instructor
             cd["disciplina"] = None
             cd["nivel_instructor"] = None
             cd["idioma"] = ""

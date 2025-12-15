@@ -1,97 +1,63 @@
-import 'dart:convert';
-import 'package:http/http.dart' as http;
+import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:intl/intl.dart';
 
 class ApiService {
-  // Para web, localhost:
-  static String baseUrl = 'http://127.0.0.1:8000';
-
-  static String? accessToken;
-  static String? refreshToken;
+  static final _supabase = Supabase.instance.client;
 
   // =====================================================
   // 🔹 LOGIN INSTRUCTOR
-  // Django espera: { correo, password }
   // =====================================================
   static Future<bool> login(String correo, String password) async {
-    final url = Uri.parse('$baseUrl/api/instructor/login/');
-
-    final resp = await http.post(
-      url,
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: jsonEncode({
-        'correo': correo,
-        'password': password,
-      }),
-    );
-
-    print('LOGIN status: ${resp.statusCode}');
-    print('LOGIN body: ${resp.body}');
-
-    if (resp.statusCode == 200) {
-      final data = jsonDecode(resp.body);
-
-      accessToken = data['access'];
-      refreshToken = data['refresh'];
-
-      print("TOKEN GUARDADO:");
-      print("access: $accessToken");
-      print("refresh: $refreshToken");
-
-      return true;
+    try {
+      final AuthResponse res = await _supabase.auth.signInWithPassword(
+        email: correo,
+        password: password,
+      );
+      return res.user != null && res.session != null;
+    } catch (e) {
+      print('Error de Login: $e');
+      return false;
     }
-
-    return false;
   }
 
   // =====================================================
-  // 🔹 OBTENER CLASES DEL INSTRUCTOR (sin fecha)
+  // 🔹 LOGOUT
   // =====================================================
-  static Future<List<dynamic>> fetchClases() async {
-    final url = Uri.parse('$baseUrl/api/instructor/clases/');
-
-    final resp = await http.get(
-      url,
-      headers: {
-        'Authorization': 'Bearer $accessToken',
-        'Content-Type': 'application/json',
-      },
-    );
-
-    print('CLASES status: ${resp.statusCode}');
-    print('CLASES body: ${resp.body}');
-
-    return jsonDecode(resp.body) as List;
+  static Future<void> logout() async {
+    await _supabase.auth.signOut();
   }
 
   // =====================================================
-  // 🔹 OBTENER CLASES POR FECHA
-  // Django espera: YYYY-MM-DD
+  // 🔹 OBTENER CLASES (CORREGIDO)
   // =====================================================
-  static Future<List<dynamic>> fetchClasesForDate(DateTime fecha) async {
-    final f = DateFormat('yyyy-MM-dd').format(fecha);
+  static Future<List<Map<String, dynamic>>> fetchClases({DateTime? fecha}) async {
+    try {
+      final userId = _supabase.auth.currentUser?.id;
+      if (userId == null) throw Exception('No hay usuario autenticado');
 
-    final url =
-        Uri.parse('$baseUrl/api/instructor/clases/?fecha=$f');
+      // 1. Iniciamos la consulta (Sin ordenar todavía)
+      // Esto nos devuelve un 'PostgrestFilterBuilder' que SÍ acepta .gte/.lte
+      var query = _supabase.from('clases_clase').select();
 
-    final resp = await http.get(
-      url,
-      headers: {
-        'Authorization': 'Bearer $accessToken',
-        'Content-Type': 'application/json',
-      },
-    );
+      // 2. Aplicamos filtros condicionales
+      if (fecha != null) {
+        // Rango del día completo
+        final start = DateTime(fecha.year, fecha.month, fecha.day).toIso8601String();
+        final end = DateTime(fecha.year, fecha.month, fecha.day, 23, 59, 59).toIso8601String();
+        
+        // Ahora sí podemos usar .gte y .lte
+        query = query.gte('hora_inicio', start).lte('hora_inicio', end);
+      }
 
-    print('CLASES FECHA status: ${resp.statusCode}');
-    print('CLASES FECHA body: ${resp.body}');
-
-    if (resp.statusCode == 200) {
-      return jsonDecode(resp.body) as List;
-    } else {
-      throw Exception(
-          'Error ${resp.statusCode}: ${resp.body}');
+      // 3. Aplicamos el ordenamiento al FINAL
+      // .order() devuelve un 'PostgrestTransformBuilder', por eso debe ir último
+      final res = await query.order('hora_inicio', ascending: true);
+      
+      return List<Map<String, dynamic>>.from(res);
+      
+    } catch (e) {
+      print('Error obteniendo clases: $e');
+      return [];
     }
   }
 }

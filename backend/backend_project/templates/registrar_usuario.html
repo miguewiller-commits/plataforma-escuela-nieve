@@ -91,11 +91,13 @@
     small {
       font-size: 11px;
       color: var(--text-muted);
+      display: block;
+      margin-top: 4px;
     }
 
     button {
       width: 100%;
-      margin-top: 8px;
+      margin-top: 18px; /* Aumentado un poco el margen superior */
       margin-bottom: 2px;
       padding: 10px 14px;
       background: var(--accent);
@@ -132,7 +134,6 @@
       display: none;
     }
 
-    /* Separador visual para el bloque de instructor */
     .block-title {
       margin-top: 14px;
       margin-bottom: 4px;
@@ -151,7 +152,7 @@
 
     <div class="register-title">Registro de usuario</div>
     <div class="register-subtitle">
-      Crea una cuenta para acceder a la plataforma de la escuela.
+      La contraseña se generará automáticamente usando el RUT (sin dígito verificador).
     </div>
 
     <div class="field-group">
@@ -178,14 +179,17 @@
       <label for="id_numero_telefono">Teléfono</label>
       {{ form.numero_telefono }}
     </div>
+    
+    <div class="field-group">
+      <label for="id_id_centro">Centro de Esquí</label>
+      {{ form.id_centro }}
+    </div>
 
     <div class="field-group">
       <label for="id_tipo_de_usuario">Tipo de usuario</label>
       {{ form.tipo_de_usuario }}
-      <small>Ej: instructor, boleteria, jefe_centro…</small>
     </div>
 
-    <!-- Bloque que se muestra solo para instructores -->
     <div id="campos-instructor" class="oculto">
       <div class="block-title">Datos del instructor</div>
 
@@ -203,16 +207,6 @@
         <label for="id_idioma">Idiomas</label>
         {{ form.idioma }}
       </div>
-    </div>
-
-    <div class="field-group" style="margin-top:12px;">
-      <label for="id_contraseña">Contraseña</label>
-      {{ form.contraseña }}
-    </div>
-
-    <div class="field-group">
-      <label for="id_confirmar_contraseña">Confirmar contraseña</label>
-      {{ form.confirmar_contraseña }}
     </div>
 
     <button type="submit">Registrar</button>
@@ -233,13 +227,14 @@
 
       function actualizar() {
         const val = (selectTipo.value || "").toLowerCase();
+        // Ajusta "instructor" según el value exacto que devuelve tu backend
         const esInstructor = val.includes("instructor");
         bloqueInstructor.classList.toggle("oculto", !esInstructor);
       }
 
       if (selectTipo) {
         selectTipo.addEventListener("change", actualizar);
-        actualizar(); // estado inicial
+        actualizar(); 
       }
     });
   </script>

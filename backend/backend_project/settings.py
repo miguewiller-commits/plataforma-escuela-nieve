@@ -92,8 +92,13 @@ WSGI_APPLICATION = 'backend_project.wsgi.application'
 
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
+        'ENGINE': 'django.db.backends.postgresql',
+        'NAME': 'postgres',
+        # 👇 AQUÍ ESTABA EL ERROR: El usuario debe llevar el ID del proyecto
+        'USER': 'postgres.xpzrxbzibtcfhoowusvk', 
+        'PASSWORD': 'SkiLand.123', # La que creaste al inicio
+        'HOST': 'aws-1-sa-east-1.pooler.supabase.com', # El host que sí funcionó el ping
+        'PORT': '6543', # Puerto del Pooler
     }
 }
 
